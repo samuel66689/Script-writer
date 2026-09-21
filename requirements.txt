@@ -1,4 +1,2 @@
-   streamlit>=1.35.0
-   google-genai>=0.1.0
-   pydantic>=2.0.0
-   streamlit-javascript>=0.1.5
+streamlit>=1.35.0
+google-genai>=0.1.0
