@@ -4,9 +4,6 @@ import streamlit as st
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
--------------------------------------------------------------
-App Configuration & Styling
--------------------------------------------------------------
 st.set_page_config(
 page_title="Flow AI Video Script Generator",
 page_icon="🎬",
@@ -54,9 +51,6 @@ margin: 6px 0;
 }
 </style>
 """, unsafe_allow_html=True)
--------------------------------------------------------------
-Pydantic Schemas for Structured JSON
--------------------------------------------------------------
 class SceneItem(BaseModel):
 scene_number: int = Field(description="Scene sequence number")
 dialogue_myanmar: str = Field(description="မြန်မာဘာသာဖြင့် စကားပြော သို့မဟုတ် Voiceover စာသား")
@@ -71,9 +65,6 @@ title: str = Field(description="Video title in Myanmar")
 logline: str = Field(description="Short summary in Myanmar")
 character_sheet: List[CharacterProfile] = Field(description="List of characters")
 scenes: List[SceneItem] = Field(description="List of generated scenes")
--------------------------------------------------------------
-Sidebar: API Key Configuration
--------------------------------------------------------------
 with st.sidebar:
 st.markdown("### ⚙️ Settings")
 user_api_key = st.text_input(
@@ -85,9 +76,6 @@ help="Google AI Studio မှ ရရှိသော Gemini API Key ကို ထ
 st.caption("🔒 Key ကို လုံခြုံစွာဖြင့် လက်ရှိ Session အတွင်းသာ အသုံးပြုပါမည်။")
 st.markdown("---")
 st.caption("🎯 Flow AI Video Platform အတွက် အထူးထုတ်လုပ်ထားပါသည်။")
--------------------------------------------------------------
-Main Application UI
--------------------------------------------------------------
 st.markdown('<div class="main-header">🎬 Flow AI Script & Prompt Generator</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Flow AI အတွက် Script၊ Character Sheet နှင့် Scene-by-Scene Prompts များ ထုတ်ပေးသည့်စနစ်</div>', unsafe_allow_html=True)
 categories = {
@@ -115,9 +103,6 @@ custom_idea = st.text_area(
 "၅။ ထည့်သွင်းလိုသော အကြောင်းအရာ (စိတ်ကြိုက်):",
 placeholder="ဥပမာ- ရန်ဖြစ်နေသော ငှက်ပျောသီးနှင့် သရက်သီး၊ ဒါမှမဟုတ် သီလပေးပုံပြင်..."
 )
--------------------------------------------------------------
-Generation Logic
--------------------------------------------------------------
 if st.button("🚀 Script & Prompts ဖန်တီးမည်", type="primary", use_container_width=True):
 if not user_api_key or not user_api_key.strip():
 st.error("⚠️ ဘယ်ဘက် Sidebar တွင် Google AI Studio API Key ကို အရင်ဆုံး ထည့်သွင်းပေးပါ။")
@@ -156,22 +141,17 @@ st.session_state["script_result"] = json.loads(response.text)
 st.success("အောင်မြင်စွာ ဖန်တီးပြီးပါပြီ!")
 except Exception as e:
 st.error(f"Error ဖြစ်ပေါ်ခဲ့သည်: {str(e)}")
--------------------------------------------------------------
-Render Output Results
--------------------------------------------------------------
 if "script_result" in st.session_state:
 data = st.session_state["script_result"]
 st.markdown("---")
 st.subheader(f"📌 {data.get('title', 'Video Script')}")
 st.markdown(f"ဇာတ်လမ်း အကျဉ်း: {data.get('logline', '')}")
-# 1. Character Consistency Sheet
 st.markdown("### 👤 Character Consistency Sheet (Flow AI)")
 for char in data.get("character_sheet", []):
 with st.expander(f"✨ ဇာတ်ကောင်: {char.get('character_name')}", expanded=True):
 st.markdown(f"ရုပ်သွင်: {char.get('visual_description')}")
 st.markdown("Flow AI Master Reference Prompt:")
 st.code(char.get('flow_ai_ref_prompt'), language="text")
-# 2. Scene by Scene Section
 st.markdown("### 🎬 Scene-by-Scene Production (အခန်းခွဲများ)")
 for scene in data.get("scenes", []):
 sc_num = scene.get('scene_number')
@@ -188,7 +168,6 @@ st.code(scene.get('image_prompt_en'), language="text")
 with c_vid:
 st.markdown("🎥 Video Motion Prompt:")
 st.code(scene.get('img_to_video_prompt_en'), language="text")
-# 3. Export
 st.markdown("### 💾 Export Script")
 txt_content = f"Title: {data.get('title')}\nLogline: {data.get('logline')}\n\n"
 for s in data.get("scenes", []):
