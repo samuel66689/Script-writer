@@ -303,11 +303,12 @@ def _get_local_store():
 _LOCAL_STORE = _get_local_store()
 
 
-def ls_get(key: str, widget_key: str) -> Optional[str]:
+def ls_get(key: str) -> Optional[str]:
+    """Read one value from this browser's localStorage (best-effort)."""
     if _LOCAL_STORE is None:
         return None
     try:
-        return _LOCAL_STORE.getItem(key, key=widget_key)
+        return _LOCAL_STORE.getItem(key)
     except Exception:
         return None
 
@@ -317,6 +318,15 @@ def ls_set(key: str, value: str, widget_key: str) -> None:
         return
     try:
         _LOCAL_STORE.setItem(key, value, key=widget_key)
+    except Exception:
+        pass
+
+
+def ls_delete(key: str, widget_key: str) -> None:
+    if _LOCAL_STORE is None:
+        return
+    try:
+        _LOCAL_STORE.deleteItem(key, key=widget_key)
     except Exception:
         pass
 
@@ -755,11 +765,25 @@ if "active_part" not in st.session_state:
 if "history" not in st.session_state:
     st.session_state.history: List[Dict[str, Any]] = []
 
-# Restore the current project / history from this browser's localStorage.
-# These keep retrying every rerun while still empty, and stop naturally
-# once populated (either restored, or the user generates something new).
+# Fresh page loads run the script once before the LocalStorage frontend has
+# posted this browser's stored values back, so the first restore pass sees
+# nothing. Do one bounded rerun so the second pass picks them up. The flag
+# guarantees this can never loop, even if the component misbehaves.
+if _LOCAL_STORE is not None and not st.session_state.get("_ls_boot_rerun_done"):
+    st.session_state["_ls_boot_rerun_done"] = True
+    st.rerun()
+
+# Restore the API key, current project and history from this browser's
+# localStorage. These keep retrying every rerun while still empty, and stop
+# naturally once populated (either restored, or the user generates something
+# new).
+if not st.session_state.get("api_key_field"):
+    _restored_key = ls_get("flow_ai_api_key")
+    if _restored_key:
+        st.session_state["api_key_field"] = _restored_key
+
 if not st.session_state.parts:
-    _restored_project = ls_get("flow_ai_project", "get_project_boot")
+    _restored_project = ls_get("flow_ai_project")
     if _restored_project:
         try:
             loaded = json.loads(_restored_project)
@@ -770,7 +794,7 @@ if not st.session_state.parts:
             pass
 
 if not st.session_state.history:
-    _restored_history = ls_get("flow_ai_history", "get_history_boot")
+    _restored_history = ls_get("flow_ai_history")
     if _restored_history:
         try:
             st.session_state.history = json.loads(_restored_history)
@@ -821,11 +845,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-if not st.session_state.get("api_key_field"):
-    _restored_key = ls_get("flow_ai_api_key", "get_api_key_boot")
-    if _restored_key:
-        st.session_state["api_key_field"] = _restored_key
-
 st.markdown('<div class="section-label">🔑 API Key</div>', unsafe_allow_html=True)
 key_col, link_col = st.columns([3, 1])
 with key_col:
@@ -841,7 +860,7 @@ if remember_key and api_key_input and api_key_input != st.session_state.get("_la
     ls_set("flow_ai_api_key", api_key_input, "set_api_key")
     st.session_state["_last_saved_key"] = api_key_input
 elif not remember_key and st.session_state.get("_last_saved_key"):
-    ls_set("flow_ai_api_key", "", "clear_api_key")
+    ls_delete("flow_ai_api_key", "clear_api_key")
     st.session_state["_last_saved_key"] = ""
 
 st.caption("🔒 Key ကို ဒီ browser ထဲမှာပဲ သိမ်းထားပြီး Anthropic/Streamlit server ကို ဘယ်တော့မှ ပို့မည် မဟုတ်ပါ။")

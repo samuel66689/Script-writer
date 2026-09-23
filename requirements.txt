@@ -1,3 +1,3 @@
 streamlit>=1.50.0
 google-genai
-streamlit-local-storage
+streamlit-local-storage==0.0.25
