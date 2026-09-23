@@ -132,9 +132,28 @@ MELODRAMA_RULE = (
     "'ဝဋ်ကြွေး', 'အချိန်လွန်နောင်တ', 'မိထွေးမေတ္တာ'). Never a generic or English title."
 )
 
+MELODRAMA_VISUAL_RULE = (
+    "MELODRAMA VISUAL DNA - match the look of top Myanmar TikTok talking-fruit dramas:\n"
+    "CHARACTERS: every character is an anthropomorphic fruit - a realistic, highly expressive "
+    "fruit head (coconut, durian, jackfruit, eggplant, orange, strawberry, mango, mangosteen, "
+    "lemon, pumpkin...) on a human-like body wearing Myanmar traditional dress (longyi, aingyi, "
+    "taikpon where fitting). Faces must be built for extreme close-ups: able to cry, tremble, "
+    "glare and break down convincingly.\n"
+    "CINEMATOGRAPHY (Burmese TV-drama grammar): carry emotional beats with extreme close-ups and "
+    "slow push-ins (a tear rolling down, trembling hands, a shocked stare); stage confrontations "
+    "as wide theatrical shots (family gathered in a wooden house, a wedding hall full of guests); "
+    "keep meaningful objects in frame (a shattered photo frame, an empty chair, a worn family photo).\n"
+    "LIGHTING & COLOR: warm golden interiors for tender family moments; cold blue-grey moonlight or "
+    "rain for sorrow and showdowns. Rich, saturated cinematic color like a Burmese movie poster.\n"
+    "SETTINGS: authentic Myanmar life - bamboo hut, wooden stilt house, village lane, market, "
+    "wedding hall, pagoda compound. Never generic Western interiors.\n"
+    "STYLE BIBLE: the style_bible paragraph MUST lock in this Burmese melodrama cinema look "
+    "(palette, lighting mood, lens feel, film texture) so every scene reads as frames from the "
+    "same mini-movie."
+)
+
 # (lower_bound_fraction, upper_bound_fraction, act description)
-MELODRAMA_ACTS: List[Tuple[float, float, str]] = [
-    (0.00, 0.10, "EMOTIONAL HOOK - an extreme emotional close-up already in motion (tears, shock, trembling hands). No exposition, no greetings - pure feeling."),
+MELODRAMA_ACTS: List[Tuple[float, float, str]] = [    (0.00, 0.10, "EMOTIONAL HOOK - an extreme emotional close-up already in motion (tears, shock, trembling hands). No exposition, no greetings - pure feeling."),
     (0.10, 0.25, "SETUP - who this family is, shown through action and meaningful objects (a worn photo, an empty chair), never explained."),
     (0.25, 0.65, "ESCALATION - confrontations and accusations tighten step by step; raise the emotional stakes with every scene."),
     (0.65, 0.85, "TWIST / REVEAL - one revelation that reframes everything the viewer believed so far."),
@@ -524,6 +543,8 @@ def build_system_prompt(
     if is_melodrama:
         parts.append("")
         parts.append(MELODRAMA_RULE)
+        parts.append("")
+        parts.append(MELODRAMA_VISUAL_RULE)
         parts.append("")
         parts.append(
             f"STORY ARCHETYPE for this script: {melodrama_archetype} - "
