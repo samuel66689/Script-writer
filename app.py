@@ -60,6 +60,7 @@ CATEGORIES: Dict[str, List[str]] = {
     "အသီးခေါင်း AI (Talking Fruit)": [
         "ဟာသ",
         "အချစ်",
+        "မိသားစု ဒရမ်မာ",
         "ပညာပေး",
         "ကလဲ့စား",
         "ဈေးနှုန်းငွေကြေး သရော်စာ",
@@ -80,6 +81,65 @@ CATEGORIES: Dict[str, List[str]] = {
 }
 
 SATIRE_GENRES = {"ဈေးနှုန်းငွေကြေး သရော်စာ", "ဘဝရှင်သန်ရေး ဟာသ"}
+
+MELODRAMA_GENRE = "မိသားစု ဒရမ်မာ"
+
+# Story archetypes modeled on top-performing Myanmar TikTok talking-fruit
+# melodramas (family guilt, regret, karma, betrayal, hidden kindness).
+MELODRAMA_ARCHETYPES: Dict[str, str] = {
+    "😭 နောင်တ": (
+        "A child (or spouse) rejects, mocks or abandons their poor or aging parents "
+        "(or devoted partner), chasing pride or wealth - then falls hard and realizes "
+        "the truth only when it is TOO LATE. Ends in kneeling regret and tears."
+    ),
+    "⚖️ ဝဋ်ကြွေး": (
+        "Someone commits a cruel or unjust act (cheating, cruelty to in-laws, greed) "
+        "and karma returns it multiplied. The wrongdoer faces a mirror of their own "
+        "cruelty; moral justice lands like a thunderclap."
+    ),
+    "🎭 နှစ်မျက်နှာ": (
+        "A trusted character (friend, relative, spouse) secretly works against the "
+        "protagonist - sweet face in public, poison in private. Build dramatic irony "
+        "where the audience suspects before the victim does, then a public unmasking."
+    ),
+    "💔 အထင်လွဲ": (
+        "A stepmother, mother-in-law or daughter-in-law is assumed cruel by everyone, "
+        "but she secretly loves and sacrifices for the family. The twist reveals her "
+        "hidden kindness and shames those who judged her."
+    ),
+    "👻 ဝိညာဉ်": (
+        "A ghost or supernatural presence tied to guilt or injustice haunts the living "
+        "until a wrong is righted. Spooky atmosphere in service of a moral reckoning, "
+        "not jump-scare horror."
+    ),
+}
+
+MELODRAMA_RULE = (
+    "MELODRAMA MODE - Burmese family melodrama mini-movie in the spirit of top Myanmar "
+    "TikTok drama channels. Forget comedy: the engine of this story is strong moral emotion - "
+    "family guilt, parental love, betrayal, regret, karmic justice. The audience should feel "
+    "like crying or be deeply moved, never laughing.\n"
+    "HOOK (scene 1): open on an extreme emotional close-up already in motion - a crying mother "
+    "caressing her child's face, a shocked face, trembling hands, a shattered photo frame on "
+    "the floor. NO exposition, NO greetings, NO setup dialogue. Pure feeling in the first seconds, "
+    "paired with one punchy Burmese subtitle-style line.\n"
+    "CHARACTERS: 3-5 expressive anthropomorphic fruits with clear family roles (mother, "
+    "daughter-in-law, stepmother, son, elder, rival). At least one character carries a hidden "
+    "motive or secret that pays off in the twist.\n"
+    "DIALOGUE: natural spoken Myanmar, emotional but never cringe; short lines an actor could "
+    "cry through. Let silence and close-ups do half the work.\n"
+    "TITLE: give the story a short, evocative Burmese moral phrase as its title (in the spirit of "
+    "'ဝဋ်ကြွေး', 'အချိန်လွန်နောင်တ', 'မိထွေးမေတ္တာ'). Never a generic or English title."
+)
+
+# (lower_bound_fraction, upper_bound_fraction, act description)
+MELODRAMA_ACTS: List[Tuple[float, float, str]] = [
+    (0.00, 0.10, "EMOTIONAL HOOK - an extreme emotional close-up already in motion (tears, shock, trembling hands). No exposition, no greetings - pure feeling."),
+    (0.10, 0.25, "SETUP - who this family is, shown through action and meaningful objects (a worn photo, an empty chair), never explained."),
+    (0.25, 0.65, "ESCALATION - confrontations and accusations tighten step by step; raise the emotional stakes with every scene."),
+    (0.65, 0.85, "TWIST / REVEAL - one revelation that reframes everything the viewer believed so far."),
+    (0.85, 1.01, "MORAL PAYOFF - a tearful reckoning: kneeling apology, forgiveness, or too-late regret. Close on one quotable moral line."),
+]
 
 STYLE_VISUAL_RULES: Dict[str, str] = {
     "အသီးခေါင်း AI (Talking Fruit)": "Expressive, anthropomorphic fruits with clear facial emotion.",
@@ -377,14 +437,17 @@ def plan_batches(duration_meta: Dict[str, Any], max_per_batch: int = MAX_SCENES_
     return batches
 
 
-def act_for_position(fraction: float) -> str:
-    for lo, hi, desc in STORY_ACTS:
+def act_for_position(fraction: float, melodrama: bool = False) -> str:
+    acts = MELODRAMA_ACTS if melodrama else STORY_ACTS
+    for lo, hi, desc in acts:
         if lo <= fraction < hi:
             return desc
-    return STORY_ACTS[-1][2]
+    return acts[-1][2]
 
 
-def narrative_arc_instruction(batch: Dict[str, int], series_type: str) -> str:
+def narrative_arc_instruction(
+    batch: Dict[str, int], series_type: str, melodrama: bool = False
+) -> str:
     start, count, total = batch["start"], batch["count"], batch["total"]
     end = start + count - 1
     acts_seen: List[str] = []
@@ -393,7 +456,7 @@ def narrative_arc_instruction(batch: Dict[str, int], series_type: str) -> str:
         (start - 1 + count / 2) / total,
         min(end / total, 0.999),
     ):
-        act = act_for_position(frac)
+        act = act_for_position(frac, melodrama)
         if act not in acts_seen:
             acts_seen.append(act)
 
@@ -403,7 +466,14 @@ def narrative_arc_instruction(batch: Dict[str, int], series_type: str) -> str:
     if not is_final_batch:
         note += " End the LAST scene of this batch on a small hook or unresolved beat so it flows naturally into the next scenes."
     elif "အစပျိုး" in series_type:
-        note += " Since this is Part 1 of a series, end the FINAL scene on a cliffhanger that sets up Part 2 rather than fully resolving the story."
+        if melodrama:
+            note += (" Since this is Part 1 of a series, end the FINAL scene on a devastating cliffhanger "
+                     "that sets up Part 2 - a secret overheard, a door slammed, a phone ringing, a face "
+                     "turning pale. Do NOT resolve the story.")
+        else:
+            note += " Since this is Part 1 of a series, end the FINAL scene on a cliffhanger that sets up Part 2 rather than fully resolving the story."
+    elif melodrama:
+        note += " End the FINAL scene with the tearful moral payoff described above - never a joke."
     else:
         note += " End the FINAL scene with a satisfying, funny punchline or resolution."
     return note
@@ -420,12 +490,25 @@ def build_system_prompt(
     satire_intensity: Optional[str] = None,
     hook_required: bool = False,
     mode: str = "full",
+    melodrama_archetype: Optional[str] = None,
 ) -> str:
+    is_melodrama = bool(melodrama_archetype)
+    if is_melodrama:
+        intro = (
+            "You are an expert AI scriptwriter and prompt engineer specialized for Flow AI "
+            "(image-to-video) production pipelines, creating Burmese family melodrama mini-movies "
+            "for a Myanmar audience - tearful, moral, unforgettable, in the spirit of the top "
+            "Myanmar TikTok talking-fruit drama channels."
+        )
+    else:
+        intro = (
+            "You are an expert AI scriptwriter and prompt engineer specialized for Flow AI "
+            "(image-to-video) production pipelines, creating short entertainment videos for a "
+            "Myanmar audience that should feel as engaging as top international 'talking fruit' "
+            "or mascot-comedy channels."
+        )
     parts = [
-        "You are an expert AI scriptwriter and prompt engineer specialized for Flow AI "
-        "(image-to-video) production pipelines, creating short entertainment videos for a "
-        "Myanmar audience that should feel as engaging as top international 'talking fruit' "
-        "or mascot-comedy channels.",
+        intro,
         "",
         f"VISUAL STYLE: {STYLE_VISUAL_RULES.get(style_key, '')}",
         "",
@@ -438,13 +521,22 @@ def build_system_prompt(
         MOTION_DETAIL_RULE,
     ]
 
+    if is_melodrama:
+        parts.append("")
+        parts.append(MELODRAMA_RULE)
+        parts.append("")
+        parts.append(
+            f"STORY ARCHETYPE for this script: {melodrama_archetype} - "
+            f"{MELODRAMA_ARCHETYPES.get(melodrama_archetype, '')}"
+        )
+
     if mode in ("full", "continuation"):
         parts.append("")
         parts.append(STYLE_BIBLE_RULE)
 
     if mode != "single_scene":
         parts.append("")
-        parts.append(narrative_arc_instruction(batch, series_type))
+        parts.append(narrative_arc_instruction(batch, series_type, melodrama=is_melodrama))
 
     if satire_intensity:
         parts.append("")
@@ -452,7 +544,7 @@ def build_system_prompt(
         parts.append("")
         parts.append(f"SAFETY: {SATIRE_SAFETY_RULE}")
 
-    if hook_required and batch["start"] == 1:
+    if hook_required and batch["start"] == 1 and not is_melodrama:
         parts.append("")
         parts.append(
             "HOOK: This is for short-form vertical platforms (TikTok/Reels/Shorts). The very "
@@ -503,6 +595,7 @@ def build_user_instruction(
     idea: str,
     batch: Dict[str, int],
     trending_topic: str = "",
+    melodrama_archetype: Optional[str] = None,
 ) -> str:
     lines = [
         f"Style: {style}",
@@ -511,6 +604,11 @@ def build_user_instruction(
         dialogue_pacing_line(duration_meta),
         f"Series Structure: {series_type}",
     ]
+    if melodrama_archetype:
+        lines.append(
+            f"Melodrama archetype (follow it faithfully): {melodrama_archetype} - "
+            f"{MELODRAMA_ARCHETYPES.get(melodrama_archetype, '')}"
+        )
     if trending_topic.strip():
         lines.append(
             f"Real-world situation to satirize (use only as a generic backdrop, do not name "
@@ -521,7 +619,8 @@ def build_user_instruction(
 
 
 def build_batch_continue_instruction(
-    data: Dict[str, Any], style: str, genre: str, duration_meta: Dict[str, Any], batch: Dict[str, int]
+    data: Dict[str, Any], style: str, genre: str, duration_meta: Dict[str, Any], batch: Dict[str, int],
+    melodrama_archetype: Optional[str] = None,
 ) -> str:
     prior_scenes = data.get("scenes", [])
     last_two = prior_scenes[-2:] if len(prior_scenes) >= 2 else prior_scenes
@@ -539,12 +638,17 @@ def build_batch_continue_instruction(
         f"Now write exactly {batch['count']} NEW scenes, numbered sequentially starting at {batch['start']}.",
         dialogue_pacing_line(duration_meta),
     ]
+    if melodrama_archetype:
+        lines.append(
+            f"Keep following the melodrama archetype: {melodrama_archetype}. "
+            f"Do not turn it into comedy."
+        )
     return "\n".join(lines)
 
 
 def build_continuation_first_batch_instruction(
     previous_data: Dict[str, Any], style: str, genre: str, duration_meta: Dict[str, Any],
-    batch: Dict[str, int], idea: str,
+    batch: Dict[str, int], idea: str, melodrama_archetype: Optional[str] = None,
 ) -> str:
     char_names = ", ".join(c.get("character_name", "") for c in previous_data.get("character_sheet", []))
     lines = [
@@ -557,6 +661,11 @@ def build_continuation_first_batch_instruction(
         f"starting at {batch['start']}.",
         dialogue_pacing_line(duration_meta),
     ]
+    if melodrama_archetype:
+        lines.append(
+            f"Keep following the melodrama archetype: {melodrama_archetype}. "
+            f"Do not turn it into comedy."
+        )
     if idea.strip():
         lines.append(f"Direction for this part: {idea.strip()}")
     return "\n".join(lines)
@@ -706,6 +815,7 @@ def generate_full_script(
     status, api_key: str, model_order: List[str], style: str, genre: str,
     duration_meta: Dict[str, Any], series_type: str, idea: str, trending_topic: str,
     satire_intensity: Optional[str], hook_required: bool,
+    melodrama_archetype: Optional[str] = None,
 ) -> Tuple[str, Dict[str, Any]]:
     """Runs the (possibly multi-batch) generation for a brand-new script and
     returns (model_used, data)."""
@@ -713,15 +823,19 @@ def generate_full_script(
     used_models: List[str] = []
 
     # --- first batch: title, logline, style bible, characters + its scenes ---
-    sys0 = build_system_prompt(style, batches[0], series_type, satire_intensity, hook_required, mode="full")
-    instr0 = build_user_instruction(style, genre, duration_meta, series_type, idea, batches[0], trending_topic)
+    sys0 = build_system_prompt(style, batches[0], series_type, satire_intensity, hook_required,
+                               mode="full", melodrama_archetype=melodrama_archetype)
+    instr0 = build_user_instruction(style, genre, duration_meta, series_type, idea, batches[0],
+                                    trending_topic, melodrama_archetype=melodrama_archetype)
     model_used, data = generate_with_fallback(status, api_key, model_order, FULL_SCRIPT_SCHEMA, sys0, instr0)
     used_models.append(model_used)
 
     # --- remaining batches: scenes only, continuing the same story ---
     for batch in batches[1:]:
-        sys_b = build_system_prompt(style, batch, series_type, satire_intensity, hook_required, mode="batch_continue")
-        instr_b = build_batch_continue_instruction(data, style, genre, duration_meta, batch)
+        sys_b = build_system_prompt(style, batch, series_type, satire_intensity, hook_required,
+                                    mode="batch_continue", melodrama_archetype=melodrama_archetype)
+        instr_b = build_batch_continue_instruction(data, style, genre, duration_meta, batch,
+                                                   melodrama_archetype=melodrama_archetype)
         model_b, batch_data = generate_with_fallback(status, api_key, model_order, BATCH_SCENES_SCHEMA, sys_b, instr_b)
         used_models.append(model_b)
         data.setdefault("scenes", []).extend(batch_data.get("scenes", []))
@@ -734,18 +848,24 @@ def generate_continuation(
     status, api_key: str, model_order: List[str], previous_data: Dict[str, Any],
     style: str, genre: str, duration_meta: Dict[str, Any], series_type: str,
     idea: str, satire_intensity: Optional[str], hook_required: bool,
+    melodrama_archetype: Optional[str] = None,
 ) -> Tuple[str, Dict[str, Any]]:
     batches = plan_batches(duration_meta)
     used_models: List[str] = []
 
-    sys0 = build_system_prompt(style, batches[0], series_type, satire_intensity, hook_required, mode="continuation")
-    instr0 = build_continuation_first_batch_instruction(previous_data, style, genre, duration_meta, batches[0], idea)
+    sys0 = build_system_prompt(style, batches[0], series_type, satire_intensity, hook_required,
+                               mode="continuation", melodrama_archetype=melodrama_archetype)
+    instr0 = build_continuation_first_batch_instruction(previous_data, style, genre, duration_meta,
+                                                        batches[0], idea,
+                                                        melodrama_archetype=melodrama_archetype)
     model_used, data = generate_with_fallback(status, api_key, model_order, FULL_SCRIPT_SCHEMA, sys0, instr0)
     used_models.append(model_used)
 
     for batch in batches[1:]:
-        sys_b = build_system_prompt(style, batch, series_type, satire_intensity, hook_required, mode="batch_continue")
-        instr_b = build_batch_continue_instruction(data, style, genre, duration_meta, batch)
+        sys_b = build_system_prompt(style, batch, series_type, satire_intensity, hook_required,
+                                    mode="batch_continue", melodrama_archetype=melodrama_archetype)
+        instr_b = build_batch_continue_instruction(data, style, genre, duration_meta, batch,
+                                                   melodrama_archetype=melodrama_archetype)
         model_b, batch_data = generate_with_fallback(status, api_key, model_order, BATCH_SCENES_SCHEMA, sys_b, instr_b)
         used_models.append(model_b)
         data.setdefault("scenes", []).extend(batch_data.get("scenes", []))
@@ -924,8 +1044,18 @@ series_type = st.pills("Series", SERIES_OPTIONS, default=SERIES_OPTIONS[0], labe
 series_type = series_type or SERIES_OPTIONS[0]
 
 is_satire = selected_genre in SATIRE_GENRES
+is_melodrama = selected_genre == MELODRAMA_GENRE
 trending_topic = ""
 satire_intensity = None
+melodrama_archetype = None
+if is_melodrama:
+    st.markdown('<div class="section-label">🎭 ဒရမ်မာ ပုံစံ (Archetype)</div>', unsafe_allow_html=True)
+    melodrama_archetype = st.pills(
+        "Melodrama archetype", list(MELODRAMA_ARCHETYPES.keys()),
+        default=list(MELODRAMA_ARCHETYPES.keys())[0],
+        key="melodrama_archetype", label_visibility="collapsed")
+    melodrama_archetype = melodrama_archetype or list(MELODRAMA_ARCHETYPES.keys())[0]
+    st.caption("💡 ပေါက်တဲ့ ဒရမ်မာ video တွေရဲ့ ဇာတ်လမ်းပုံစံတွေပါ — တစ်ခုရွေးလိုက်ရင် AI က အဲဒီအတိုင်း မျက်ရည်ကျစရာ ဇာတ်လမ်း ရေးပေးမယ်။")
 if is_satire:
     st.markdown('<div class="section-label">🗞️ ယနေ့/လက်ရှိ အခြေအနေ (Optional)</div>', unsafe_allow_html=True)
     trending_topic = st.text_area(
@@ -962,6 +1092,7 @@ if generate_clicked:
                     status, api_key, model_order, selected_style, selected_genre,
                     duration_meta, series_type, custom_idea, trending_topic,
                     satire_intensity if is_satire else None, hook_required,
+                    melodrama_archetype=melodrama_archetype,
                 )
                 character_clause = build_character_clause(data)
                 style_bible = data.get("style_bible", "")
@@ -975,6 +1106,7 @@ if generate_clicked:
                     "series_type": series_type,
                     "character_clause": character_clause, "style_bible": style_bible,
                     "is_satire": is_satire, "satire_intensity": satire_intensity,
+                    "melodrama_archetype": melodrama_archetype,
                 }
                 st.session_state.parts = [new_part]
                 st.session_state.active_part = 0
@@ -1163,6 +1295,7 @@ if parts:
                             status, api_key, model_order, data, part["style"], part["genre"],
                             duration_meta, part.get("series_type", SERIES_OPTIONS[0]), next_idea,
                             part.get("satire_intensity") if part.get("is_satire") else None, hook_required,
+                            melodrama_archetype=part.get("melodrama_archetype"),
                         )
                         character_clause = build_character_clause(new_data)
                         style_bible = new_data.get("style_bible", "")
