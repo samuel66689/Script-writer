@@ -771,12 +771,23 @@ def _call_gemini(client: "genai.Client", model_name: str, schema: Dict[str, Any]
     )
 
 
+def _short_error(e: BaseException, limit: int = 160) -> str:
+    msg = str(getattr(e, "message", "") or e).replace("\n", " ").strip()
+    return (msg[:limit] + "…") if len(msg) > limit else msg
+
+
 def generate_with_fallback(
     status, api_key: str, model_order: List[str], schema: Dict[str, Any],
     system_prompt: str, user_instruction: str,
 ) -> Tuple[str, Dict[str, Any]]:
     client = genai.Client(api_key=api_key)
     last_error: Optional[BaseException] = None
+    attempt_log: List[str] = []
+
+    def _fail(e: BaseException, note: str) -> None:
+        # Attach the full attempt history to the exception so UI handlers can show it.
+        e._attempt_log = list(attempt_log)  # type: ignore[attr-defined]
+        status.update(label=note, state="error")
 
     for idx, model_name in enumerate(model_order):
         delays = PRIMARY_RETRY_DELAYS if idx == 0 else FALLBACK_RETRY_DELAYS
@@ -793,26 +804,35 @@ def generate_with_fallback(
             except errors.APIError as e:
                 code = getattr(e, "code", None)
                 last_error = e
+                attempt_log.append(f"{model_name} try {attempt}: APIError {code} - {_short_error(e)}")
                 if code in (400, 401, 403):
-                    status.update(label="❌ API Key (သို့) တောင်းဆိုမှု ပြဿနာ", state="error")
+                    _fail(e, "❌ API Key (သို့) တောင်းဆိုမှု ပြဿနာ")
                     raise
-                if code in (404, 429):
-                    break
                 if code and code >= 500 and attempt < max_attempts:
-                    time.sleep(delays[attempt - 1])
+                    wait = delays[attempt - 1]
+                    status.update(label=f"⚠️ {model_name}: Google server error {code} — {wait} စက္ကန့်စောင့်ပြီး ပြန်ကြိုးစားမည်…")
+                    time.sleep(wait)
                     continue
+                # This model's attempts are exhausted (or non-retriable code) -> move on.
+                if idx < len(model_order) - 1:
+                    reason = {404: "model ရှာမတွေ့ပါ", 429: "quota ပြည့်နေသည်"}.get(code, f"error {code}")
+                    status.update(label=f"⚠️ {model_name}: {reason} — နောက် model ({model_order[idx + 1]}) ပြောင်းနေသည်…")
                 break
 
             except ValueError as e:
                 last_error = e
+                attempt_log.append(f"{model_name} try {attempt}: parse error - {_short_error(e)}")
                 if attempt < max_attempts:
+                    status.update(label=f"⚠️ {model_name}: အဖြေဖတ်မရ — ပြန်ကြိုးစားနေသည်… ({attempt}/{max_attempts})")
                     continue
                 break
 
-    status.update(label="❌ Model အားလုံး ကြိုးစားပြီးပါပြီ၊ မအောင်မြင်ပါ", state="error")
     if last_error:
+        _fail(last_error, "❌ Model အားလုံး ကြိုးစားပြီးပါပြီ၊ မအောင်မြင်ပါ")
         raise last_error
-    raise RuntimeError("Model တစ်ခုမှ အလုပ်မလုပ်ပါ။")
+    err = RuntimeError("Model တစ်ခုမှ အလုပ်မလုပ်ပါ။")
+    _fail(err, "❌ Model အားလုံး ကြိုးစားပြီးပါပြီ၊ မအောင်မြင်ပါ")
+    raise err
 
 
 def friendly_api_error(e: BaseException) -> str:
@@ -830,6 +850,14 @@ def friendly_api_error(e: BaseException) -> str:
     if code and code >= 500:
         return "🌐 Google server အားလုံး အလုပ်များနေပါသည်။ ၁-၂ မိနစ်နေမှ ပြန်စမ်းကြည့်ပါ။"
     return f"Error ({code}): {msg}"
+
+
+def show_attempt_log(e: BaseException) -> None:
+    """Renders the per-attempt failure history attached by generate_with_fallback."""
+    log = getattr(e, "_attempt_log", [])
+    if log:
+        st.markdown("**📝 ကြိုးစားမှု မှတ်တမ်း (ဘာကြောင့် fail လဲဆိုတာ):**")
+        st.code("\n".join(log), language="text")
 
 
 def generate_full_script(
@@ -1137,8 +1165,11 @@ if generate_clicked:
                 st.error(friendly_api_error(e))
                 with st.expander("Technical details"):
                     st.code(str(e), language="text")
-            except ValueError:
+                    show_attempt_log(e)
+            except ValueError as e:
                 st.error("⚠️ AI ပြန်လာတဲ့ အဖြေကို ဖတ်မရပါ။ ထပ်နှိပ်ကြည့်ပါ။")
+                with st.expander("Technical details"):
+                    show_attempt_log(e)
             except Exception as e:
                 st.error(f"မမျှော်လင့်သော Error: {e}")
 
@@ -1254,6 +1285,7 @@ if parts:
                             st.rerun()
                         except errors.APIError as e:
                             st.error(friendly_api_error(e))
+                            show_attempt_log(e)
                         except Exception as e:
                             st.error(f"မအောင်မြင်ပါ: {e}")
 
@@ -1335,5 +1367,6 @@ if parts:
                         st.rerun()
                     except errors.APIError as e:
                         st.error(friendly_api_error(e))
+                        show_attempt_log(e)
                     except Exception as e:
                         st.error(f"မအောင်မြင်ပါ: {e}")
