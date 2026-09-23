@@ -307,58 +307,275 @@ SINGLE_SCENE_SCHEMA: Dict[str, Any] = {
 # =====================================================================
 
 st.set_page_config(
-    page_title="Flow AI Script Generator",
+    page_title="AI Script Studio — Flow AI Prompt Generator",
     page_icon="🎬",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Noto+Sans+Myanmar:wght@400;500;600;700&display=swap');
 
 :root {
-    --bg: #0F1115;
-    --bg-soft: #171A21;
-    --card: #1B1F27;
-    --border: #2A2F3A;
-    --text: #F5F1E8;
-    --text-muted: #9CA3AF;
-    --accent: #F2B134;
-    --accent-soft: rgba(242, 177, 52, 0.12);
+    --bg: #0B0D12;
+    --bg2: #0E1118;
+    --surface: #131722;
+    --card: #161B28;
+    --card2: #1A2030;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.14);
+    --text: #F4F1EA;
+    --muted: #9AA3B2;
+    --faint: #6B7280;
+    --gold: #F2B134;
+    --gold2: #E8590C;
+    --grad: linear-gradient(135deg, #F6C453 0%, #F2B134 45%, #E8590C 100%);
+    --green: #34D399;
+    --red: #F87171;
+    --blue: #60A5FA;
+    --violet: #A78BFA;
+    --radius: 14px;
 }
 
-html, body, [class*="css"] { font-family: 'Noto Sans Myanmar', sans-serif; }
-.stApp { background-color: var(--bg); color: var(--text); }
-
-.app-header { border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 18px; }
-.app-title { color: var(--accent); font-size: 26px; font-weight: 700; margin-bottom: 2px; }
-.app-subtitle { color: var(--text-muted); font-size: 14px; }
-
-.section-label {
-    color: var(--accent); font-weight: 700; font-size: 14px;
-    text-transform: uppercase; letter-spacing: 0.04em; margin: 18px 0 6px 0;
+html, body, [class*="css"] { font-family: 'Noto Sans Myanmar', 'Sora', sans-serif; }
+.stApp {
+    background:
+        radial-gradient(1100px 420px at 12% -8%, rgba(242, 177, 52, 0.07), transparent 60%),
+        radial-gradient(900px 380px at 95% 0%, rgba(232, 89, 12, 0.05), transparent 60%),
+        var(--bg);
+    color: var(--text);
 }
 
+/* ---------- scrollbars ---------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #2A3040; border-radius: 8px; border: 2px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: #3A4256; }
+
+/* ---------- sidebar ---------- */
+section[data-testid="stSidebar"] { background: var(--bg2); border-right: 1px solid var(--border); }
+section[data-testid="stSidebar"] .stMarkdown { color: var(--text); }
+.side-brand { display: flex; align-items: center; gap: 10px; padding: 4px 2px 2px 2px; }
+.side-brand .logo {
+    width: 38px; height: 38px; border-radius: 11px; background: var(--grad);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+    box-shadow: 0 4px 18px rgba(242, 177, 52, 0.35);
+}
+.side-brand .name { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 16px; letter-spacing: 0.01em; }
+.side-brand .sub { font-size: 11px; color: var(--muted); }
+.side-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--gold); margin: 20px 0 8px 0;
+}
+.side-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px; margin-bottom: 6px;
+}
+.key-status { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 10px; }
+.key-status .dot { width: 9px; height: 9px; border-radius: 50%; }
+.key-status.ok .dot { background: var(--green); box-shadow: 0 0 10px rgba(52, 211, 153, 0.8); }
+.key-status.off .dot { background: var(--faint); }
+.key-status.ok { color: var(--green); } .key-status.off { color: var(--muted); }
+.hist-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; margin-bottom: 8px;
+}
+.hist-card .t { font-weight: 600; font-size: 13.5px; }
+.hist-card .m { font-size: 11.5px; color: var(--muted); }
+
+/* ---------- hero ---------- */
+.hero {
+    background: linear-gradient(135deg, rgba(242,177,52,0.10) 0%, rgba(232,89,12,0.06) 55%, transparent 100%),
+                var(--surface);
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 28px 30px; margin-bottom: 22px; position: relative; overflow: hidden;
+}
+.hero::after {
+    content: "🎬"; position: absolute; right: 26px; top: 50%; transform: translateY(-50%) rotate(-8deg);
+    font-size: 92px; opacity: 0.10; pointer-events: none;
+}
+.hero-kicker {
+    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.18em;
+    color: var(--gold); border: 1px solid rgba(242,177,52,0.4); background: rgba(242,177,52,0.08);
+    padding: 5px 12px; border-radius: 20px; margin-bottom: 12px;
+}
+.hero-title { font-family: 'Sora', sans-serif; font-size: 34px; font-weight: 800; line-height: 1.15; margin-bottom: 6px; }
+.hero-title .grad {
+    background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero-sub { color: var(--muted); font-size: 14.5px; max-width: 640px; }
+.stat-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.stat-chip {
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 14px; font-size: 13px; color: var(--text);
+    display: flex; align-items: center; gap: 7px;
+}
+.stat-chip b { color: var(--gold); }
+
+/* ---------- generic cards & steps ---------- */
+.panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; padding: 24px 26px; margin-bottom: 22px;
+}
+.panel-head { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+.panel-head .step-num {
+    width: 34px; height: 34px; border-radius: 10px; background: var(--grad); color: #1A1206;
+    font-family: 'Sora', sans-serif; font-weight: 800; font-size: 16px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(242, 177, 52, 0.3);
+}
+.panel-title { font-size: 18px; font-weight: 700; }
+.panel-sub { color: var(--muted); font-size: 13px; margin: 2px 0 14px 46px; }
+.field-label {
+    font-size: 12.5px; font-weight: 700; color: var(--muted);
+    letter-spacing: 0.06em; text-transform: uppercase; margin: 16px 0 8px 0;
+}
+.field-label:first-child { margin-top: 4px; }
+.field-label .n {
+    display: inline-flex; width: 20px; height: 20px; border-radius: 6px; align-items: center; justify-content: center;
+    background: rgba(242,177,52,0.14); color: var(--gold); font-size: 11px; margin-right: 7px;
+}
+
+/* ---------- empty state ---------- */
+.empty-state {
+    text-align: center; padding: 46px 20px; border: 1.5px dashed var(--border-strong);
+    border-radius: 18px; background: rgba(255,255,255,0.015); margin-bottom: 22px;
+}
+.empty-state .big { font-size: 54px; margin-bottom: 10px; }
+.empty-state h3 { font-size: 19px; margin-bottom: 6px; }
+.empty-state p { color: var(--muted); font-size: 13.5px; max-width: 520px; margin: 0 auto 18px auto; }
+.steps3 { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+.step3 {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; width: 200px; text-align: left;
+}
+.step3 .e { font-size: 22px; } .step3 .t { font-weight: 700; font-size: 13.5px; margin: 6px 0 2px 0; }
+.step3 .d { font-size: 12px; color: var(--muted); }
+
+/* ---------- buttons ---------- */
+div[data-testid="stButton"] > button, div[data-testid="stDownloadButton"] > button {
+    border-radius: 11px !important; font-weight: 600 !important;
+    border: 1px solid var(--border-strong) !important;
+    background: var(--card2) !important; color: var(--text) !important;
+    transition: transform 0.08s ease, box-shadow 0.15s ease, border-color 0.15s ease !important;
+}
+div[data-testid="stButton"] > button:hover, div[data-testid="stDownloadButton"] > button:hover {
+    border-color: rgba(242,177,52,0.55) !important; box-shadow: 0 4px 16px rgba(242,177,52,0.12) !important;
+}
+div[data-testid="stButton"] > button:active, div[data-testid="stDownloadButton"] > button:active { transform: scale(0.98); }
+div[data-testid="stButton"] > button[kind="primary"] {
+    background: var(--grad) !important; border: none !important; color: #1A1206 !important;
+    font-weight: 700 !important; font-size: 16px !important; padding: 12px 20px !important;
+    box-shadow: 0 6px 24px rgba(232, 89, 12, 0.35) !important;
+}
+div[data-testid="stButton"] > button[kind="primary"]:hover {
+    box-shadow: 0 8px 30px rgba(232, 89, 12, 0.5) !important; filter: brightness(1.05);
+}
+div[data-testid="stLinkButton"] > a {
+    border-radius: 11px !important; border: 1px solid var(--border-strong) !important;
+    background: var(--card2) !important; color: var(--text) !important; font-weight: 600 !important;
+}
+.icon-btn div[data-testid="stButton"] > button { padding: 6px 10px !important; font-size: 13px !important; }
+
+/* ---------- pills ---------- */
+div[data-testid="stPills"] button {
+    border-radius: 10px !important; border: 1px solid var(--border) !important;
+    background: rgba(255,255,255,0.03) !important; color: var(--muted) !important;
+    font-weight: 500 !important; transition: all 0.12s ease !important;
+}
+div[data-testid="stPills"] button:hover { border-color: var(--border-strong) !important; color: var(--text) !important; }
+div[data-testid="stPills"] button[aria-pressed="true"] {
+    background: rgba(242,177,52,0.14) !important; border-color: var(--gold) !important;
+    color: var(--gold) !important; font-weight: 700 !important;
+    box-shadow: 0 2px 12px rgba(242,177,52,0.15) !important;
+}
+
+/* ---------- inputs ---------- */
+div[data-testid="stTextInput"] input, div[data-testid="stTextArea"] textarea,
+div[data-testid="stSelectbox"] div[data-baseweb="select"] {
+    background: var(--bg2) !important; border: 1px solid var(--border) !important;
+    border-radius: 11px !important; color: var(--text) !important;
+}
+div[data-testid="stTextInput"] input:focus, div[data-testid="stTextArea"] textarea:focus {
+    border-color: var(--gold) !important; box-shadow: 0 0 0 3px rgba(242,177,52,0.15) !important;
+}
+div[data-testid="stSelectbox"] div[data-baseweb="select"]:focus-within {
+    border-color: var(--gold) !important; box-shadow: 0 0 0 3px rgba(242,177,52,0.15) !important;
+}
+input::placeholder, textarea::placeholder { color: var(--faint) !important; }
+
+/* ---------- tabs ---------- */
+div[data-testid="stTabs"] div[role="tablist"] { gap: 6px; border-bottom: 1px solid var(--border); }
+div[data-testid="stTabs"] button[role="tab"] {
+    border-radius: 10px 10px 0 0 !important; color: var(--muted) !important;
+    font-weight: 600 !important; padding: 10px 18px !important;
+}
+div[data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
+    color: var(--gold) !important; border-bottom: 2px solid var(--gold) !important;
+    background: rgba(242,177,52,0.06) !important;
+}
+
+/* ---------- expanders ---------- */
+div[data-testid="stExpander"] { border: 1px solid var(--border) !important; border-radius: 12px !important;
+    background: var(--surface) !important; overflow: hidden; }
+div[data-testid="stExpander"] summary { font-weight: 600 !important; }
+div[data-testid="stExpander"] summary:hover { color: var(--gold) !important; }
+
+/* ---------- code blocks ---------- */
+div[data-testid="stCode"] { border: 1px solid var(--border) !important; border-radius: 10px !important; }
+div[data-testid="stCode"] pre { background: #0D1017 !important; }
+
+/* ---------- status / alerts ---------- */
+div[data-testid="stStatus"] { border: 1px solid var(--border) !important; border-radius: 12px !important;
+    background: var(--surface) !important; }
+div[data-testid="stAlert"] { border-radius: 12px !important; }
+
+/* ---------- scene cards ---------- */
 .scene-card {
-    background-color: var(--card); border: 1px solid var(--border);
-    border-left: 3px solid var(--accent); border-radius: 10px;
-    padding: 16px; margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px; margin-bottom: 16px;
+    transition: border-color 0.15s ease;
 }
-.badge {
-    background-color: var(--accent-soft); color: var(--accent);
-    font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 12px;
-    display: inline-block; margin-bottom: 10px; border: 1px solid var(--accent);
+.scene-card:hover { border-color: var(--border-strong); }
+.scene-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.scene-num {
+    font-family: 'Sora', sans-serif; font-weight: 800; font-size: 13px; color: #1A1206;
+    background: var(--grad); border-radius: 8px; padding: 4px 12px; letter-spacing: 0.04em;
 }
+.act-chip { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; padding: 4px 11px;
+    border-radius: 20px; border: 1px solid; }
 .dialogue-box {
-    background-color: var(--bg-soft); border-left: 3px solid var(--accent);
-    padding: 10px 12px; border-radius: 6px; margin-bottom: 10px; color: var(--text);
+    background: linear-gradient(135deg, rgba(242,177,52,0.09), rgba(242,177,52,0.03));
+    border: 1px solid rgba(242,177,52,0.25); border-left: 3px solid var(--gold);
+    padding: 12px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 14.5px; line-height: 1.65;
 }
-.hint-text { color: var(--text-muted); font-size: 12px; }
-.history-card {
-    background-color: var(--card); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 14px; margin-bottom: 8px;
+.prompt-panel-label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: var(--muted);
+    margin-bottom: 6px; text-transform: uppercase; }
+.scene-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+/* ---------- character cards ---------- */
+.char-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px; height: 100%;
 }
+.char-card .cname { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.char-card .cname .e { font-size: 22px; margin-right: 8px; }
+.char-card .cdesc { font-size: 13.5px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+.char-card .clabel { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--gold);
+    text-transform: uppercase; margin-bottom: 6px; }
+
+/* ---------- project header ---------- */
+.proj-head { margin-bottom: 4px; }
+.proj-title { font-family: 'Sora', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+.proj-logline { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 14px; max-width: 760px; }
+
+/* ---------- misc ---------- */
+.hint-text { color: var(--muted); font-size: 12.5px; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+.footer { text-align: center; color: var(--faint); font-size: 12px; padding: 26px 0 10px 0; }
+.footer b { color: var(--muted); }
+.stCaption { color: var(--muted) !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1003,74 +1220,122 @@ def archive_current_project_to_history() -> None:
 
 
 # =====================================================================
-# 10. HEADER + API KEY (restored from this browser if remembered)
+# 10. SIDEBAR (brand + API key + model + history) & HERO HEADER
 # =====================================================================
 
-st.markdown(
-    '<div class="app-header">'
-    '<div class="app-title">🎬 Flow AI Video Script & Prompt Generator</div>'
-    '<div class="app-subtitle">Flow AI အတွက် Script၊ Character Sheet နှင့် Scene-by-Scene Prompts များ ထုတ်ပေးသည့်စနစ်</div>'
-    '</div>',
-    unsafe_allow_html=True,
-)
+with st.sidebar:
+    st.markdown(
+        '<div class="side-brand"><div class="logo">🎬</div>'
+        '<div><div class="name">Script Studio</div>'
+        '<div class="sub">AI Video Script Factory</div></div></div>',
+        unsafe_allow_html=True,
+    )
 
-st.markdown('<div class="section-label">🔑 API Key</div>', unsafe_allow_html=True)
-key_col, link_col = st.columns([3, 1])
-with key_col:
+    st.markdown('<div class="side-label">🔑 API Key</div>', unsafe_allow_html=True)
+    st.markdown('<div class="side-card">', unsafe_allow_html=True)
+    has_key = bool((st.session_state.get("api_key_field") or "").strip())
+    st.markdown(
+        f'<div class="key-status {"ok" if has_key else "off"}">'
+        f'<span class="dot"></span>{"ချိတ်ဆက်ထားပြီး ✓" if has_key else "Key မထည့်ရသေးပါ"}</div>',
+        unsafe_allow_html=True,
+    )
     api_key_input = st.text_input(
         "Google AI Studio API Key", type="password", placeholder="AIzaSy...",
         key="api_key_field", label_visibility="collapsed",
     )
-with link_col:
-    st.link_button("🔗 Key ယူရန်", "https://aistudio.google.com/apikey", width="stretch")
+    remember_key = st.checkbox("🔒 ဒီ browser မှာပဲ မှတ်ထားမည်", value=True,
+                               help="Key ကို ဒီ browser ရဲ့ local storage ထဲမှာပဲ သိမ်းထားပြီး server ကို ဘယ်တော့မှ ပို့မည်မဟုတ်ပါ။")
+    if remember_key and api_key_input and api_key_input != st.session_state.get("_last_saved_key"):
+        ls_set("flow_ai_api_key", api_key_input, "set_api_key")
+        st.session_state["_last_saved_key"] = api_key_input
+    elif not remember_key and st.session_state.get("_last_saved_key"):
+        ls_delete("flow_ai_api_key", "clear_api_key")
+        st.session_state["_last_saved_key"] = ""
+    st.link_button("🔗 Google AI Studio မှာ Key ယူရန်", "https://aistudio.google.com/apikey", width="stretch")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-remember_key = st.checkbox("🔒 Key ကို ဒီ browser ပေါ်တွင် မှတ်ထားမည် (server ကို ပို့မည် မဟုတ်ပါ)", value=True)
-if remember_key and api_key_input and api_key_input != st.session_state.get("_last_saved_key"):
-    ls_set("flow_ai_api_key", api_key_input, "set_api_key")
-    st.session_state["_last_saved_key"] = api_key_input
-elif not remember_key and st.session_state.get("_last_saved_key"):
-    ls_delete("flow_ai_api_key", "clear_api_key")
-    st.session_state["_last_saved_key"] = ""
+    st.markdown('<div class="side-label">🤖 AI Model</div>', unsafe_allow_html=True)
+    st.markdown('<div class="side-card">', unsafe_allow_html=True)
+    selected_model = st.selectbox("Gemini Model (ဦးစားပေး)", MODEL_CHOICES, index=0, label_visibility="collapsed")
+    custom_model = st.text_input("Custom model", placeholder="မလိုရင် ဗလာထားပါ — ဥပမာ gemini-3.8-flash",
+                                 label_visibility="collapsed")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-st.caption("🔒 Key ကို ဒီ browser ထဲမှာပဲ သိမ်းထားပြီး Anthropic/Streamlit server ကို ဘယ်တော့မှ ပို့မည် မဟုတ်ပါ။")
-
-with st.expander("🔧 Advanced: Model Settings"):
-    selected_model = st.selectbox("Gemini Model (ဦးစားပေး)", MODEL_CHOICES, index=0)
-    custom_model = st.text_input("Custom model name (မလိုရင် ဗလာထားပါ)", placeholder="gemini-3.8-flash")
-
-if st.session_state.history:
-    with st.expander(f"🕘 Session History ({len(st.session_state.history)})"):
+    if st.session_state.history:
+        st.markdown(f'<div class="side-label">🕘 History ({len(st.session_state.history)})</div>', unsafe_allow_html=True)
         for i, entry in enumerate(st.session_state.history):
             st.markdown(
-                f'<div class="history-card"><b>{html.escape(entry.get("title", ""))}</b><br>'
-                f'<span class="hint-text">{entry.get("style", "")} · {entry.get("genre", "")} · {entry.get("timestamp", "")}</span></div>',
+                f'<div class="hist-card"><div class="t">{html.escape(entry.get("title", ""))}</div>'
+                f'<div class="m">{entry.get("style", "")} · {entry.get("genre", "")} · {entry.get("timestamp", "")}</div></div>',
                 unsafe_allow_html=True,
             )
             hcol1, hcol2 = st.columns([1, 1])
             with hcol1:
-                if st.button("🔁 ပြန်ဖွင့်မည်", key=f"restore_hist_{i}"):
+                if st.button("🔁 ဖွင့်မည်", key=f"restore_hist_{i}", width="stretch"):
                     archive_current_project_to_history()
                     st.session_state.parts = entry["parts"]
                     st.session_state.active_part = len(entry["parts"]) - 1
                     persist_project()
                     st.rerun()
             with hcol2:
-                if st.button("🗑️ ဖျက်မည်", key=f"delete_hist_{i}"):
+                if st.button("🗑️", key=f"delete_hist_{i}", width="stretch"):
                     st.session_state.history.pop(i)
                     persist_history()
                     st.rerun()
 
+    st.markdown(
+        '<div class="hint-text" style="margin-top:18px;">💡 Tip: Scene တိုင်းရဲ့ prompt တွေမှာ '
+        'copy ခလုတ်ပါပြီးသားမို့ Flow AI ထဲ တိုက်ရိုက်ကူးထည့်ရုံပါပဲ။</div>',
+        unsafe_allow_html=True,
+    )
+
+
+# ---- Hero header (main area) ----
+parts_preview = st.session_state.parts
+if parts_preview:
+    _pp = current_part()
+    _pd = _pp["data"]
+    _n_scenes = len(_pd.get("scenes", []))
+    stats_html = (
+        '<div class="stat-row">'
+        f'<div class="stat-chip">🎬 <b>{_n_scenes}</b> scenes</div>'
+        f'<div class="stat-chip">📦 <b>{len(parts_preview)}</b> parts</div>'
+        f'<div class="stat-chip">🤖 {_pp.get("model", "")}</div>'
+        f'<div class="stat-chip">🖥️ {_pp.get("aspect_label", "")}</div>'
+        "</div>"
+    )
+else:
+    stats_html = ""
+
+st.markdown(
+    '<div class="hero">'
+    '<div class="hero-kicker">🎬 AI VIDEO STUDIO</div>'
+    '<div class="hero-title">Script <span class="grad">Studio</span></div>'
+    '<div class="hero-sub">TikTok / YouTube အတွက် ဇာတ်လမ်း၊ ဇာတ်ကောင်စာရင်းနဲ့ Flow AI image + motion prompts တွေကို '
+    "တစ်နေရာတည်းမှာ professional-grade ထုတ်ပေးတဲ့စနစ်။</div>"
+    f"{stats_html}</div>",
+    unsafe_allow_html=True,
+)
+
 
 # =====================================================================
-# 11. GENERATION FORM
+# 11. CREATE PANEL — ဇာတ်လမ်းအသစ် ဖန်တီးရန်
 # =====================================================================
 
-st.markdown('<div class="section-label">၁။ ဗီဒီယို ပုံစံ (Style)</div>', unsafe_allow_html=True)
+st.markdown('<div class="panel">', unsafe_allow_html=True)
+st.markdown(
+    '<div class="panel-head"><div class="step-num">✨</div>'
+    '<div class="panel-title">ဇာတ်လမ်းအသစ် ဖန်တီးရန်</div></div>'
+    '<div class="panel-sub">အောက်က အချက်တွေရွေးလိုက်ရုံနဲ့ AI က ဇာတ်လမ်း + ဇာတ်ကောင် + Flow AI prompts အပြည့်အစုံ ရေးပေးပါလိမ့်မယ်။</div>',
+    unsafe_allow_html=True,
+)
+
+st.markdown('<div class="field-label"><span class="n">၁</span>ဗီဒီယို ပုံစံ (Style)</div>', unsafe_allow_html=True)
 selected_style = st.pills("Style", list(CATEGORIES.keys()), default=list(CATEGORIES.keys())[0],
                            label_visibility="collapsed")
 selected_style = selected_style or list(CATEGORIES.keys())[0]
 
-st.markdown('<div class="section-label">၂။ ဇာတ်လမ်း အမျိုးအစား (Genre)</div>', unsafe_allow_html=True)
+st.markdown('<div class="field-label"><span class="n">၂</span>ဇာတ်လမ်း အမျိုးအစား (Genre)</div>', unsafe_allow_html=True)
 genre_options = CATEGORIES[selected_style]
 selected_genre = st.pills("Genre", genre_options, default=genre_options[0],
                            key=f"genre_{selected_style}", label_visibility="collapsed")
@@ -1078,17 +1343,17 @@ selected_genre = selected_genre or genre_options[0]
 
 col_a, col_b = st.columns(2)
 with col_a:
-    st.markdown('<div class="section-label">၃။ ကြာချိန်</div>', unsafe_allow_html=True)
+    st.markdown('<div class="field-label"><span class="n">၃</span>ကြာချိန်</div>', unsafe_allow_html=True)
     video_duration = st.pills("Duration", list(DURATIONS.keys()), default=list(DURATIONS.keys())[0],
                                label_visibility="collapsed")
     video_duration = video_duration or list(DURATIONS.keys())[0]
 with col_b:
-    st.markdown('<div class="section-label">၄။ Format</div>', unsafe_allow_html=True)
+    st.markdown('<div class="field-label"><span class="n">၄</span>Format</div>', unsafe_allow_html=True)
     aspect_label = st.pills("Aspect", list(ASPECT_RATIOS.keys()), default=list(ASPECT_RATIOS.keys())[0],
                              label_visibility="collapsed")
     aspect_label = aspect_label or list(ASPECT_RATIOS.keys())[0]
 
-st.markdown('<div class="section-label">၅။ ဇာတ်လမ်း ဖွဲ့စည်းပုံ</div>', unsafe_allow_html=True)
+st.markdown('<div class="field-label"><span class="n">၅</span>ဇာတ်လမ်း ဖွဲ့စည်းပုံ</div>', unsafe_allow_html=True)
 series_type = st.pills("Series", SERIES_OPTIONS, default=SERIES_OPTIONS[0], label_visibility="collapsed")
 series_type = series_type or SERIES_OPTIONS[0]
 
@@ -1098,7 +1363,7 @@ trending_topic = ""
 satire_intensity = None
 melodrama_archetype = None
 if is_melodrama:
-    st.markdown('<div class="section-label">🎭 ဒရမ်မာ ပုံစံ (Archetype)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="field-label">🎭 ဒရမ်မာ ပုံစံ (Archetype)</div>', unsafe_allow_html=True)
     melodrama_archetype = st.pills(
         "Melodrama archetype", list(MELODRAMA_ARCHETYPES.keys()),
         default=list(MELODRAMA_ARCHETYPES.keys())[0],
@@ -1106,7 +1371,7 @@ if is_melodrama:
     melodrama_archetype = melodrama_archetype or list(MELODRAMA_ARCHETYPES.keys())[0]
     st.caption("💡 ပေါက်တဲ့ ဒရမ်မာ video တွေရဲ့ ဇာတ်လမ်းပုံစံတွေပါ — တစ်ခုရွေးလိုက်ရင် AI က အဲဒီအတိုင်း မျက်ရည်ကျစရာ ဇာတ်လမ်း ရေးပေးမယ်။")
 if is_satire:
-    st.markdown('<div class="section-label">🗞️ ယနေ့/လက်ရှိ အခြေအနေ (Optional)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="field-label">🗞️ ယနေ့/လက်ရှိ အခြေအနေ <span class="hint-text">(optional)</span></div>', unsafe_allow_html=True)
     trending_topic = st.text_area(
         "Trending topic",
         placeholder="ဥပမာ - ဈေးကွက်ထဲ ဆီစျေးမြင့်တက်နေမှု၊ လျှပ်စစ်မီးပြတ်တောက်မှု၊ ဘတ်စ်ကားတန်းစီနေရမှု...",
@@ -1115,13 +1380,16 @@ if is_satire:
     st.caption("⚠️ ပုဂ္ဂိုလ်ရေး နာမည် မထည့်ဘဲ 'အခြေအနေ' ကိုသာ ဖော်ပြပါ - AI ကလည်း အမည်ဖော်တာမျိုး ရေးမည်မဟုတ်ပါ။")
     satire_intensity = st.select_slider("သရော်အား", options=INTENSITY_OPTIONS, value=INTENSITY_OPTIONS[1])
 
-st.markdown('<div class="section-label">၆။ ထည့်သွင်းလိုသော အကြောင်းအရာ</div>', unsafe_allow_html=True)
+st.markdown('<div class="field-label"><span class="n">၆</span>ထည့်သွင်းလိုသော အကြောင်းအရာ <span class="hint-text">(optional)</span></div>', unsafe_allow_html=True)
 custom_idea = st.text_area(
     "Idea", placeholder="ဥပမာ- ရန်ဖြစ်နေသော ငှက်ပျောသီးနှင့် သရက်သီး၊ ဒါမှမဟုတ် သီလပေးပုံပြင်...",
     label_visibility="collapsed",
 )
 
+_est = DURATIONS[video_duration].get("avg_scenes", 0)
+st.caption(f"📊 ခန့်မှန်း scene <b>{_est:g}</b> ခု ထုတ်ပေးမည် · ဇာတ်ကောင် စာရင်း + Flow AI prompts အပြည့်အစုံ ပါဝင်မည်။")
 generate_clicked = st.button("🚀 Script & Prompts ဖန်တီးမည်", type="primary", width="stretch")
+st.markdown("</div>", unsafe_allow_html=True)
 
 if generate_clicked:
     api_key = (api_key_input or "").strip()
@@ -1160,6 +1428,7 @@ if generate_clicked:
                 st.session_state.parts = [new_part]
                 st.session_state.active_part = 0
                 persist_project()
+                st.toast("✅ Script ဖန်တီးပြီးပါပြီ! အောက်မှာ ရလဒ်တွေ ကြည့်နိုင်ပါပြီ။")
 
             except errors.APIError as e:
                 st.error(friendly_api_error(e))
@@ -1175,67 +1444,143 @@ if generate_clicked:
 
 
 # =====================================================================
-# 12. RESULTS DISPLAY
+# 12. RESULTS
 # =====================================================================
 
-parts = st.session_state.parts
-if parts:
-    st.markdown("---")
+def _act_chip(fraction: float, melodrama: bool = False) -> str:
+    """Scene card အတွက် act label + အရောင် chip HTML ထုတ်ပေးသည်။"""
+    name = act_for_position(fraction, melodrama).split(" - ")[0].strip()
+    color = "#F2B134"
+    if "HOOK" in name:
+        color = "#F2B134"
+    elif "SETUP" in name:
+        color = "#60A5FA"
+    elif "RISING" in name:
+        color = "#A78BFA"
+    elif "CLIMAX" in name or "TWIST" in name or "REVEAL" in name:
+        color = "#F87171"
+    elif "RESOLUTION" in name or "PAYOFF" in name or "MORAL" in name:
+        color = "#34D399"
+    return (f'<span class="act-chip" style="color:{color};border-color:{color}66;'
+            f'background:{color}14;">{html.escape(name)}</span>')
 
+
+parts = st.session_state.parts
+if not parts:
+    st.markdown(
+        '<div class="empty-state"><div class="big">🎬</div>'
+        "<h3>ဇာတ်လမ်းတစ်ပုဒ် ဖန်တီးဖို့ အသင့်ဖြစ်နေပါပြီ</h3>"
+        "<p>အပေါ်က အဆင့်တွေအတိုင်း ရွေးချယ်ပြီး <b>Script & Prompts ဖန်တီးမည်</b> ကို နှိပ်လိုက်ရုံပါပဲ — "
+        "AI က ဇာတ်လမ်း၊ ဇာတ်ကောင်စာရင်းနဲ့ Flow AI prompts တွေ အလိုအလျောက် ရေးပေးပါလိမ့်မယ်။</p>"
+        '<div class="steps3">'
+        '<div class="step3"><div class="e">🔑</div><div class="t">၁။ Key ထည့်ပါ</div>'
+        '<div class="d">ဘယ်ဘက် sidebar မှာ Google AI Studio API Key ထည့်ပါ</div></div>'
+        '<div class="step3"><div class="e">✨</div><div class="t">၂။ ရွေးပြီး ဖန်တီးပါ</div>'
+        '<div class="d">Style · Genre · ကြာချိန် ရွေးပြီး ခလုတ်နှိပ်ပါ</div></div>'
+        '<div class="step3"><div class="e">🎥</div><div class="t">၃။ Copy ကူးပြီး သုံးပါ</div>'
+        '<div class="d">Prompt တွေကို copy ခလုတ်နဲ့ ကူးပြီး Flow AI မှာ ဆက်လုပ်ပါ</div></div>'
+        "</div></div>",
+        unsafe_allow_html=True,
+    )
+else:
     if len(parts) > 1:
         part_labels = [f"Part {i + 1}" for i in range(len(parts))]
-        chosen = st.pills("Part ရွေးရန်", part_labels, default=part_labels[st.session_state.active_part])
+        st.markdown('<div class="field-label">အပိုင်း ရွေးရန်</div>', unsafe_allow_html=True)
+        chosen = st.pills("Part ရွေးရန်", part_labels, default=part_labels[st.session_state.active_part],
+                          label_visibility="collapsed")
         if chosen:
             st.session_state.active_part = part_labels.index(chosen)
 
     part = current_part()
     data = part["data"]
     aspect_meta = ASPECT_RATIOS[part["aspect_label"]]
+    is_melo_part = part.get("genre") == MELODRAMA_GENRE
+    n_scenes = len(data.get("scenes", []))
 
-    st.subheader(f"📌 {data.get('title', 'Video Script')}")
-    st.markdown(f"**ဇာတ်လမ်း အကျဉ်း:** {data.get('logline', '')}")
-    st.caption(f"Model: {part['model']} · Style: {part['style']} · Genre: {part['genre']} · {part['aspect_label']} · Scenes: {len(data.get('scenes', []))}")
+    st.markdown(
+        '<div class="proj-head">'
+        f'<div class="proj-title">📌 {html.escape(str(data.get("title", "Video Script")))}</div>'
+        f'<div class="proj-logline">{html.escape(str(data.get("logline", "")))}</div>'
+        "</div>"
+        '<div class="stat-row">'
+        f'<div class="stat-chip">🤖 {html.escape(str(part.get("model", "")))}</div>'
+        f'<div class="stat-chip">🎨 {html.escape(str(part.get("style", "")))}</div>'
+        f'<div class="stat-chip">🎭 {html.escape(str(part.get("genre", "")))}</div>'
+        f'<div class="stat-chip">🖥️ {html.escape(str(part.get("aspect_label", "")))}</div>'
+        f'<div class="stat-chip">🎬 <b>{n_scenes}</b>&nbsp;scenes</div>'
+        "</div><div style='height:16px'></div>",
+        unsafe_allow_html=True,
+    )
 
-    tab_chars, tab_scenes, tab_export = st.tabs(["👤 ဇာတ်ကောင်များ", "🎬 Scenes", "💾 Export"])
+    tab_scenes, tab_chars, tab_export = st.tabs(
+        [f"🎬 Scenes ({n_scenes})",
+         f"👤 ဇာတ်ကောင်များ ({len(data.get('character_sheet', []))})",
+         "💾 Export & ဆက်ရန်"]
+    )
 
     # ---- Characters tab ----
+    _FRUIT_EMOJI = ["🍎", "🍊", "🍋", "🍇", "🍉", "🥭", "🍍", "🥥", "🍌", "🍑", "🍒", "🥝"]
     with tab_chars:
         if data.get("style_bible"):
-            with st.expander("🎨 Style Bible (scene အားလုံးမှာ ပါဝင်ပြီးသား)"):
+            with st.expander("🎨 Style Bible — scene အားလုံးမှာ အလိုအလျောက် ပါဝင်ပြီးသား"):
                 st.code(data["style_bible"], language="text")
-        for char in data.get("character_sheet", []):
-            with st.expander(f"✨ {char.get('character_name', 'Character')}", expanded=True):
-                st.markdown(f"**ရုပ်သွင်:** {char.get('visual_description', '')}")
-                st.markdown("**Flow AI Master Reference Prompt:**")
-                st.code(char.get("flow_ai_ref_prompt", ""), language="text")
+        chars = data.get("character_sheet", [])
+        if not chars:
+            st.caption("ဇာတ်ကောင် စာရင်း မရှိပါ။")
+        else:
+            for _ci in range(0, len(chars), 2):
+                _cols = st.columns(2)
+                for _k, _col in enumerate(_cols):
+                    if _ci + _k >= len(chars):
+                        break
+                    char = chars[_ci + _k]
+                    _emoji = _FRUIT_EMOJI[(_ci + _k) % len(_FRUIT_EMOJI)]
+                    with _col:
+                        st.markdown(
+                            '<div class="char-card">'
+                            f'<div class="cname"><span class="e">{_emoji}</span>'
+                            f'{html.escape(str(char.get("character_name", "Character")))}</div>'
+                            f'<div class="cdesc">{html.escape(str(char.get("visual_description", "")))}</div>'
+                            '<div class="clabel">Flow AI Master Reference Prompt</div>'
+                            "</div>",
+                            unsafe_allow_html=True,
+                        )
+                        st.code(char.get("flow_ai_ref_prompt", ""), language="text")
 
     # ---- Scenes tab ----
     with tab_scenes:
-        for scene in data.get("scenes", []):
+        scenes = data.get("scenes", [])
+        for scene in scenes:
             sc_num = scene.get("scene_number", 1)
+            _frac = (sc_num - 1) / max(n_scenes, 1)
             dialogue = html.escape(str(scene.get("dialogue_myanmar", ""))).replace("\n", "<br>")
             st.markdown(
-                f'<div class="scene-card"><span class="badge">Scene {sc_num}</span>'
-                f'<div class="dialogue-box">🗣️ <b>စကားပြော:</b> {dialogue}</div></div>',
+                '<div class="scene-card"><div class="scene-top">'
+                f'<span class="scene-num">SCENE {sc_num}</span>'
+                f"{_act_chip(_frac, is_melo_part)}"
+                "</div>"
+                f'<div class="dialogue-box">🗣️ {dialogue}</div></div>',
                 unsafe_allow_html=True,
             )
 
             col_img, col_vid = st.columns(2)
             with col_img:
-                st.markdown("🖼️ **Image Prompt:**")
+                st.markdown('<div class="prompt-panel-label">🖼️ Image Prompt</div>', unsafe_allow_html=True)
                 st.code(scene.get("image_prompt_en", ""), language="text")
             with col_vid:
-                st.markdown("🎥 **Motion Prompt:**")
+                st.markdown('<div class="prompt-panel-label">🎥 Motion Prompt</div>', unsafe_allow_html=True)
                 st.code(scene.get("img_to_video_prompt_en", ""), language="text")
 
             btn_col1, btn_col2 = st.columns([1, 1])
             with btn_col1:
-                regen_clicked = st.button(f"🔄 Scene {sc_num} ပြန်ဆွဲမည်", key=f"regen_{st.session_state.active_part}_{sc_num}")
+                regen_clicked = st.button("🔄 ပြန်ဆွဲမည်", key=f"regen_{st.session_state.active_part}_{sc_num}",
+                                          width="stretch")
             with btn_col2:
                 backup = part.get("scene_backup", {}).get(str(sc_num))
                 undo_clicked = False
                 if backup:
-                    undo_clicked = st.button(f"↩️ Scene {sc_num} ရှေ့ဟောင်းပြန်ယူမည်", key=f"undo_{st.session_state.active_part}_{sc_num}")
+                    undo_clicked = st.button("↩️ ရှေ့ဟောင်းပြန်ယူမည်", key=f"undo_{st.session_state.active_part}_{sc_num}",
+                                             width="stretch")
 
             if undo_clicked:
                 for i, s in enumerate(data["scenes"]):
@@ -1289,15 +1634,15 @@ if parts:
                         except Exception as e:
                             st.error(f"မအောင်မြင်ပါ: {e}")
 
-    # ---- Export tab ----
+    # ---- Export & ဆက်ရန် tab ----
     with tab_export:
-        st.markdown("**📋 Prompt အားလုံး Copy ရန်:**")
-        combined_prompts = "\n\n".join(
-            f"Scene {s.get('scene_number')} - IMAGE:\n{s.get('image_prompt_en', '')}\n\n"
-            f"Scene {s.get('scene_number')} - MOTION:\n{s.get('img_to_video_prompt_en', '')}"
-            for s in data.get("scenes", [])
+        st.markdown('<div class="panel">', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="panel-head"><div class="step-num">💾</div>'
+            '<div class="panel-title">Download & Copy</div></div>'
+            '<div class="panel-sub">Script အပြည့်အစုံကို file အဖြစ် သိမ်းမလား၊ prompt တွေချည်း copy ကူးမလား — ကြိုက်တာရွေးပါ။</div>',
+            unsafe_allow_html=True,
         )
-        st.code(combined_prompts, language="text")
 
         def build_export_text(d: Dict[str, Any]) -> str:
             out = f"Title: {d.get('title')}\nLogline: {d.get('logline')}\n\n"
@@ -1318,21 +1663,38 @@ if parts:
 
         dl_col1, dl_col2, dl_col3 = st.columns(3)
         with dl_col1:
-            st.download_button("📄 ဒီ Part Text Download", data=build_export_text(data),
-                                file_name=f"flow_ai_part{st.session_state.active_part + 1}.txt",
-                                mime="text/plain", width="stretch")
+            st.download_button("📄 ဒီ Part (Text)", data=build_export_text(data),
+                               file_name=f"script_studio_part{st.session_state.active_part + 1}.txt",
+                               mime="text/plain", width="stretch")
         with dl_col2:
             all_text = "\n\n===== NEXT PART =====\n\n".join(build_export_text(p["data"]) for p in parts)
-            st.download_button("📄 Part အားလုံး Download", data=all_text,
-                                file_name="flow_ai_full_series.txt", mime="text/plain", width="stretch")
+            st.download_button("📄 Part အားလုံး (Text)", data=all_text,
+                               file_name="script_studio_full_series.txt", mime="text/plain", width="stretch")
         with dl_col3:
-            st.download_button("💾 Project JSON Save", data=json.dumps(parts, ensure_ascii=False, indent=2),
-                                file_name="flow_ai_project.json", mime="application/json", width="stretch")
+            st.download_button("💾 Project (JSON)", data=json.dumps(parts, ensure_ascii=False, indent=2),
+                               file_name="script_studio_project.json", mime="application/json", width="stretch")
 
-        st.markdown("---")
-        st.markdown("**➕ ဆက်တိုက် Part ထပ်ရေးမည်:**")
-        next_idea = st.text_area("ဒီအပိုင်းအတွက် ဇာတ်လမ်းလမ်းညွှန် (Optional)", key=f"next_idea_{st.session_state.active_part}")
-        if st.button("➕ နောက် Part ထပ်ဖန်တီးမည်", width="stretch"):
+        st.markdown('<div class="field-label" style="margin-top:18px;">📋 Prompt အားလုံး တစ်စုတည်း Copy ကူးရန်</div>',
+                    unsafe_allow_html=True)
+        combined_prompts = "\n\n".join(
+            f"Scene {s.get('scene_number')} - IMAGE:\n{s.get('image_prompt_en', '')}\n\n"
+            f"Scene {s.get('scene_number')} - MOTION:\n{s.get('img_to_video_prompt_en', '')}"
+            for s in data.get("scenes", [])
+        )
+        st.code(combined_prompts, language="text")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown('<div class="panel">', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="panel-head"><div class="step-num">➕</div>'
+            '<div class="panel-title">နောက် Part ဆက်ရေးရန်</div></div>'
+            '<div class="panel-sub">ဇာတ်ကောင်၊ style နဲ့ ဇာတ်လမ်းဆက်စပ်မှု အကုန် မှတ်ထားပြီးသား အတိုင်း နောက် အပိုင်း ထပ်ရေးပေးပါမယ်။</div>',
+            unsafe_allow_html=True,
+        )
+        next_idea = st.text_area("ဒီအပိုင်းအတွက် ဇာတ်လမ်းလမ်းညွှန် (optional)",
+                                 placeholder="ဥပမာ — ဒီအပိုင်းမှာ ဗီလိန်ရဲ့ လျှို့ဝှက်ချက်ပေါ်ပါစေ...",
+                                 key=f"next_idea_{st.session_state.active_part}")
+        if st.button("➕ နောက် Part ထပ်ဖန်တီးမည်", width="stretch", type="primary"):
             api_key = (api_key_input or "").strip()
             if not api_key:
                 st.error("⚠️ API Key ထည့်ပါဦး။")
@@ -1364,9 +1726,17 @@ if parts:
                         st.session_state.parts.append(new_part)
                         st.session_state.active_part = len(st.session_state.parts) - 1
                         persist_project()
+                        st.toast(f"✅ Part {len(st.session_state.parts)} ဖန်တီးပြီးပါပြီ!")
                         st.rerun()
                     except errors.APIError as e:
                         st.error(friendly_api_error(e))
                         show_attempt_log(e)
                     except Exception as e:
                         st.error(f"မအောင်မြင်ပါ: {e}")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+st.markdown(
+    '<div class="footer">🎬 <b>Script Studio</b> — Flow AI video creators အတွက် ဖန်တီးထားသည် · '
+    "API key ကို browser ထဲမှာပဲ သိမ်းသည်</div>",
+    unsafe_allow_html=True,
+)
