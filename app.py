@@ -153,11 +153,89 @@ MELODRAMA_VISUAL_RULE = (
 )
 
 # (lower_bound_fraction, upper_bound_fraction, act description)
-MELODRAMA_ACTS: List[Tuple[float, float, str]] = [    (0.00, 0.10, "EMOTIONAL HOOK - an extreme emotional close-up already in motion (tears, shock, trembling hands). No exposition, no greetings - pure feeling."),
+MELODRAMA_ACTS: List[Tuple[float, float, str]] = [
+    (0.00, 0.10, "EMOTIONAL HOOK - an extreme emotional close-up already in motion (tears, shock, trembling hands). No exposition, no greetings - pure feeling."),
     (0.10, 0.25, "SETUP - who this family is, shown through action and meaningful objects (a worn photo, an empty chair), never explained."),
     (0.25, 0.65, "ESCALATION - confrontations and accusations tighten step by step; raise the emotional stakes with every scene."),
     (0.65, 0.85, "TWIST / REVEAL - one revelation that reframes everything the viewer believed so far."),
     (0.85, 1.01, "MORAL PAYOFF - a tearful reckoning: kneeling apology, forgiveness, or too-late regret. Close on one quotable moral line."),
+]
+
+# =====================================================================
+# DHAMMA MODE - serene Burmese Buddhist storytelling (တရားတော်)
+# =====================================================================
+
+DHAMMA_STYLE = "တရားတော် ပုံပြ (Studio Ghibli)"
+
+DHAMMA_FORMATS: Dict[str, str] = {
+    "📖 ဇာတ်တော် ပုံပြင်": (
+        "Classic narrative storytelling in the Jataka tradition: gentle animal or human "
+        "characters, a wise storyteller's voice, events unfolding calmly, and a clear "
+        "moral teaching revealed at the end."
+    ),
+    "🎙️ တရားဒေသနာ": (
+        "Sermon-style teaching: a calm, respected teacher speaks directly to the listener. "
+        "Structure the video around 2-3 key Dhamma points with simple everyday examples, "
+        "ending in a blessing. Lines should be quotable and memorable."
+    ),
+    "💡 ဘဝသင်ခန်းစာ": (
+        "Modern life lesson: everyday Myanmar situations (family, work, friendship, hardship) "
+        "gently revealing a Dhamma truth. Relatable, warm, practical wisdom for daily life - "
+        "never preachy, never harsh."
+    ),
+    "🧘 တရားထိုင် လမ်းညွှန်": (
+        "Guided meditation: the narrator is a meditation guide, not a storyteller. Narration "
+        "is extremely sparse and slow - breathing cues, body awareness, loving-kindness phrases. "
+        "Visuals barely change between scenes (a still candle flame, slow clouds, lotus pond "
+        "ripples) - stillness is the point. Keep the character sheet minimal or empty."
+    ),
+}
+
+DHAMMA_MEDITATION = "🧘 တရားထိုင် လမ်းညွှန်"
+
+DHAMMA_RULE = (
+    "DHAMMA MODE - serene Burmese Buddhist short videos for TikTok/YouTube/Shorts, in the "
+    "spirit of beloved Myanmar Dhamma channels. This is sacred, calm content: NEVER comedy, "
+    "never romance, never horror, never politics, never clickbait.\n"
+    "NARRATION: dialogue_myanmar is calm voiceover narration by a gentle narrator, NOT "
+    "back-and-forth character dialogue. Write soft, slow, respectful spoken Myanmar - short "
+    "sentences, pause-friendly, like a kind teacher speaking. Every line should sound "
+    "beautiful read aloud.\n"
+    "VISUAL RESPECT: never depict the Buddha's face directly - use silhouettes, back views, "
+    "statues seen from a respectful distance, footprints, the Bodhi tree, candles, sunrise. "
+    "Show monks with dignity. No violence, no anger, no exaggerated or funny expressions.\n"
+    "OPENING (scene 1): a breathtakingly peaceful image - sunrise over a pagoda, a candle "
+    "flame in the dark, rain on lotus leaves, a temple bell at dawn - paired with one soft, "
+    "inviting line. Invite stillness, never shock.\n"
+    "CHARACTERS: few and gentle - a narrator monk, kind villagers, children, wise Jataka "
+    "animals with compassionate eyes. Jataka animals are wise and kind, never slapstick.\n"
+    "TITLE: a short, beautiful Burmese Dhamma phrase (in the spirit of 'စိတ်အေးချမ်းမှု', "
+    "'မေတ္တာတရား'). Never English, never clickbait."
+)
+
+DHAMMA_VISUAL_RULE = (
+    "DHAMMA VISUAL DNA - luminous serenity in a Studio Ghibli spirit, made for Myanmar "
+    "Buddhist content:\n"
+    "PALETTE: soft dawn golds, temple ochre, lotus pink, deep greens, candlelight amber. "
+    "Gentle and luminous, never garish.\n"
+    "LIGHTING: soft morning light, golden-hour glow, candlelight warmth, moonlit calm. Soft "
+    "volumetric rays through trees.\n"
+    "CINEMATOGRAPHY: slow and meditative - gentle push-ins, slow pans across nature, still "
+    "wide shots that let the viewer breathe. No fast cuts, no camera shake.\n"
+    "SETTINGS: the Myanmar Buddhist world - ancient stupas, monasteries, Bodhi trees, lotus "
+    "ponds, a village at dawn, candle-lit shrines. Never modern clutter.\n"
+    "STYLE BIBLE: the style_bible paragraph MUST lock in this luminous, peaceful look "
+    "(palette, light, lens feel, painterly texture) so every scene feels like frames from "
+    "the same meditation film."
+)
+
+# (lower_bound_fraction, upper_bound_fraction, act description)
+DHAMMA_ACTS: List[Tuple[float, float, str]] = [
+    (0.00, 0.10, "SERENE OPENING - a breathtakingly peaceful image (sunrise over a pagoda, candle flame, lotus pond). One soft line inviting stillness."),
+    (0.10, 0.30, "SETTING - introduce the world gently: a village at dawn, a monastery, Jataka animals in nature."),
+    (0.30, 0.70, "THE TEACHING STORY - the tale unfolds calmly; the moral situation or Dhamma point develops through gentle events."),
+    (0.70, 0.90, "MORAL INSIGHT - the lesson becomes clear; the narrator reflects with one quotable Dhamma line."),
+    (0.90, 1.01, "PEACEFUL CLOSING - a blessing and merit dedication. Close on one serene, memorable line (e.g. 'သာဓု သာဓု သာဓု')."),
 ]
 
 STYLE_VISUAL_RULES: Dict[str, str] = {
@@ -300,6 +378,49 @@ SINGLE_SCENE_SCHEMA: Dict[str, Any] = {
     },
     "required": ["scene_number", "dialogue_myanmar", "image_prompt_en", "img_to_video_prompt_en"],
 }
+
+# Schema for the caption / hashtag / thumbnail-text generator (Export tab).
+CAPTION_SCHEMA: Dict[str, Any] = {
+    "type": "OBJECT",
+    "properties": {
+        "caption": {"type": "STRING"},
+        "hashtags": {"type": "ARRAY", "items": {"type": "STRING"}},
+        "thumbnail_texts": {"type": "ARRAY", "items": {"type": "STRING"}},
+    },
+    "required": ["caption", "hashtags", "thumbnail_texts"],
+}
+
+CTA_OPTIONS = [
+    "🙏 သာဓု ခေါ်ဆိုရန်",
+    "➕ Follow လုပ်ထားနော်",
+    "💬 Comment မှာ မျှဝေသွားပါ",
+    "🔁 Share လုပ်ပေးပါ",
+    "🚫 CTA မထည့်ပါ",
+]
+
+CAPTION_SYSTEM_PROMPT = (
+    "You are a Myanmar social-media copywriter who writes warm, human, native-feeling "
+    "captions for short-video creators (TikTok / Reels / YouTube Shorts). For Dhamma or "
+    "spiritual content stay respectful and calm - never clickbait, never hype. For "
+    "entertainment content be playful and curiosity-driven, but never vulgar."
+)
+
+
+def build_caption_instruction(data: Dict[str, Any], style: str, genre: str, cta_choice: str) -> str:
+    return "\n".join([
+        f"Video title: {data.get('title', '')}",
+        f"Logline: {data.get('logline', '')}",
+        f"Style: {style}",
+        f"Genre: {genre}",
+        "",
+        "Write THREE things and return them as JSON:",
+        "1. caption: a TikTok/Shorts caption in natural spoken Myanmar, 2-4 short lines. Warm and human.",
+        "2. hashtags: 8-12 relevant hashtags as plain words WITHOUT the '#' symbol (mix Myanmar and English).",
+        "3. thumbnail_texts: 3-4 ultra-short thumbnail titles (max 6 words each) that spark curiosity.",
+        "",
+        f"Ending CTA: {cta_choice} - if it is '🚫 CTA မထည့်ပါ', add NO call-to-action at all. "
+        "Otherwise weave that CTA naturally into the caption's last line.",
+    ])
 
 
 # =====================================================================
@@ -673,8 +794,8 @@ def plan_batches(duration_meta: Dict[str, Any], max_per_batch: int = MAX_SCENES_
     return batches
 
 
-def act_for_position(fraction: float, melodrama: bool = False) -> str:
-    acts = MELODRAMA_ACTS if melodrama else STORY_ACTS
+def act_for_position(fraction: float, melodrama: bool = False, dhamma: bool = False) -> str:
+    acts = DHAMMA_ACTS if dhamma else MELODRAMA_ACTS if melodrama else STORY_ACTS
     for lo, hi, desc in acts:
         if lo <= fraction < hi:
             return desc
@@ -682,7 +803,7 @@ def act_for_position(fraction: float, melodrama: bool = False) -> str:
 
 
 def narrative_arc_instruction(
-    batch: Dict[str, int], series_type: str, melodrama: bool = False
+    batch: Dict[str, int], series_type: str, melodrama: bool = False, dhamma: bool = False
 ) -> str:
     start, count, total = batch["start"], batch["count"], batch["total"]
     end = start + count - 1
@@ -692,7 +813,7 @@ def narrative_arc_instruction(
         (start - 1 + count / 2) / total,
         min(end / total, 0.999),
     ):
-        act = act_for_position(frac, melodrama)
+        act = act_for_position(frac, melodrama, dhamma)
         if act not in acts_seen:
             acts_seen.append(act)
 
@@ -700,14 +821,23 @@ def narrative_arc_instruction(
 
     is_final_batch = end >= total
     if not is_final_batch:
-        note += " End the LAST scene of this batch on a small hook or unresolved beat so it flows naturally into the next scenes."
+        if dhamma:
+            note += (" End the LAST scene of this batch on a gentle, calm pause (a quiet breath, a still "
+                     "image) so it flows naturally into the next scenes - never a shock or jolt.")
+        else:
+            note += " End the LAST scene of this batch on a small hook or unresolved beat so it flows naturally into the next scenes."
     elif "အစပျိုး" in series_type:
-        if melodrama:
+        if dhamma:
+            note += (" Since this is Part 1 of a series, end the FINAL scene on a gentle, open pause that "
+                     "invites Part 2 - a quiet reflective question or a serene image. Never a shocking cliffhanger.")
+        elif melodrama:
             note += (" Since this is Part 1 of a series, end the FINAL scene on a devastating cliffhanger "
                      "that sets up Part 2 - a secret overheard, a door slammed, a phone ringing, a face "
                      "turning pale. Do NOT resolve the story.")
         else:
             note += " Since this is Part 1 of a series, end the FINAL scene on a cliffhanger that sets up Part 2 rather than fully resolving the story."
+    elif dhamma:
+        note += " End the FINAL scene with the peaceful closing described above - a blessing and one serene, memorable line. Never a joke, never shock."
     elif melodrama:
         note += " End the FINAL scene with the tearful moral payoff described above - never a joke."
     else:
@@ -727,9 +857,18 @@ def build_system_prompt(
     hook_required: bool = False,
     mode: str = "full",
     melodrama_archetype: Optional[str] = None,
+    dhamma_format: Optional[str] = None,
 ) -> str:
     is_melodrama = bool(melodrama_archetype)
-    if is_melodrama:
+    is_dhamma = bool(dhamma_format)
+    if is_dhamma:
+        intro = (
+            "You are an expert AI scriptwriter and prompt engineer specialized for Flow AI "
+            "(image-to-video) production pipelines, creating serene Burmese Buddhist (Dhamma) "
+            "short videos for a Myanmar audience - calm, respectful, spiritually uplifting, "
+            "in the spirit of beloved Myanmar Dhamma channels."
+        )
+    elif is_melodrama:
         intro = (
             "You are an expert AI scriptwriter and prompt engineer specialized for Flow AI "
             "(image-to-video) production pipelines, creating Burmese family melodrama mini-movies "
@@ -768,13 +907,24 @@ def build_system_prompt(
             f"{MELODRAMA_ARCHETYPES.get(melodrama_archetype, '')}"
         )
 
+    if is_dhamma:
+        parts.append("")
+        parts.append(DHAMMA_RULE)
+        parts.append("")
+        parts.append(DHAMMA_VISUAL_RULE)
+        parts.append("")
+        parts.append(
+            f"DHAMMA FORMAT for this video: {dhamma_format} - "
+            f"{DHAMMA_FORMATS.get(dhamma_format, '')}"
+        )
+
     if mode in ("full", "continuation"):
         parts.append("")
         parts.append(STYLE_BIBLE_RULE)
 
     if mode != "single_scene":
         parts.append("")
-        parts.append(narrative_arc_instruction(batch, series_type, melodrama=is_melodrama))
+        parts.append(narrative_arc_instruction(batch, series_type, melodrama=is_melodrama, dhamma=is_dhamma))
 
     if satire_intensity:
         parts.append("")
@@ -782,7 +932,7 @@ def build_system_prompt(
         parts.append("")
         parts.append(f"SAFETY: {SATIRE_SAFETY_RULE}")
 
-    if hook_required and batch["start"] == 1 and not is_melodrama:
+    if hook_required and batch["start"] == 1 and not is_melodrama and not is_dhamma:
         parts.append("")
         parts.append(
             "HOOK: This is for short-form vertical platforms (TikTok/Reels/Shorts). The very "
@@ -815,9 +965,16 @@ def build_system_prompt(
     return "\n".join(parts)
 
 
-def dialogue_pacing_line(duration_meta: Dict[str, Any]) -> str:
+def dialogue_pacing_line(duration_meta: Dict[str, Any], dhamma_format: Optional[str] = None) -> str:
     seconds_per_scene = duration_meta["total_seconds"] / duration_meta["avg_scenes"]
-    max_words = max(4, round(seconds_per_scene * 2.2))
+    # Calm Dhamma narration is spoken much slower than comedy dialogue;
+    # guided meditation is slower still.
+    rate = 2.2
+    if dhamma_format == DHAMMA_MEDITATION:
+        rate = 1.1
+    elif dhamma_format:
+        rate = 1.6
+    max_words = max(4, round(seconds_per_scene * rate))
     return (
         f"Each scene covers about {round(seconds_per_scene)} seconds of video - keep "
         f"dialogue_myanmar to roughly {max_words} Myanmar words or fewer so it can be spoken "
@@ -834,18 +991,28 @@ def build_user_instruction(
     batch: Dict[str, int],
     trending_topic: str = "",
     melodrama_archetype: Optional[str] = None,
+    dhamma_format: Optional[str] = None,
 ) -> str:
     lines = [
         f"Style: {style}",
         f"Genre: {genre}",
         f"Create exactly {batch['count']} scenes, numbered sequentially starting at {batch['start']}.",
-        dialogue_pacing_line(duration_meta),
+        dialogue_pacing_line(duration_meta, dhamma_format),
         f"Series Structure: {series_type}",
     ]
     if melodrama_archetype:
         lines.append(
             f"Melodrama archetype (follow it faithfully): {melodrama_archetype} - "
             f"{MELODRAMA_ARCHETYPES.get(melodrama_archetype, '')}"
+        )
+    if dhamma_format:
+        lines.append(
+            f"Dhamma format (follow it faithfully): {dhamma_format} - "
+            f"{DHAMMA_FORMATS.get(dhamma_format, '')}"
+        )
+        lines.append(
+            "Remember: dialogue_myanmar is calm narration/voiceover by a gentle narrator, "
+            "not back-and-forth character dialogue."
         )
     if trending_topic.strip():
         lines.append(
@@ -859,6 +1026,7 @@ def build_user_instruction(
 def build_batch_continue_instruction(
     data: Dict[str, Any], style: str, genre: str, duration_meta: Dict[str, Any], batch: Dict[str, int],
     melodrama_archetype: Optional[str] = None,
+    dhamma_format: Optional[str] = None,
 ) -> str:
     prior_scenes = data.get("scenes", [])
     last_two = prior_scenes[-2:] if len(prior_scenes) >= 2 else prior_scenes
@@ -874,12 +1042,17 @@ def build_batch_continue_instruction(
         f"Characters to keep consistent: {char_names}",
         f"Most recent scenes so far, for continuity:\n{context}",
         f"Now write exactly {batch['count']} NEW scenes, numbered sequentially starting at {batch['start']}.",
-        dialogue_pacing_line(duration_meta),
+        dialogue_pacing_line(duration_meta, dhamma_format),
     ]
     if melodrama_archetype:
         lines.append(
             f"Keep following the melodrama archetype: {melodrama_archetype}. "
             f"Do not turn it into comedy."
+        )
+    if dhamma_format:
+        lines.append(
+            f"Keep the serene Dhamma tone and format ({dhamma_format}). "
+            f"Do not turn it into comedy, drama, or anything loud."
         )
     return "\n".join(lines)
 
@@ -887,6 +1060,7 @@ def build_batch_continue_instruction(
 def build_continuation_first_batch_instruction(
     previous_data: Dict[str, Any], style: str, genre: str, duration_meta: Dict[str, Any],
     batch: Dict[str, int], idea: str, melodrama_archetype: Optional[str] = None,
+    dhamma_format: Optional[str] = None,
 ) -> str:
     char_names = ", ".join(c.get("character_name", "") for c in previous_data.get("character_sheet", []))
     lines = [
@@ -897,12 +1071,17 @@ def build_continuation_first_batch_instruction(
         f"Existing characters to reuse: {char_names or 'none yet'}",
         f"Create exactly {batch['count']} new scenes for this part, numbered sequentially "
         f"starting at {batch['start']}.",
-        dialogue_pacing_line(duration_meta),
+        dialogue_pacing_line(duration_meta, dhamma_format),
     ]
     if melodrama_archetype:
         lines.append(
             f"Keep following the melodrama archetype: {melodrama_archetype}. "
             f"Do not turn it into comedy."
+        )
+    if dhamma_format:
+        lines.append(
+            f"Keep the serene Dhamma tone and format ({dhamma_format}). "
+            f"Do not turn it into comedy, drama, or anything loud."
         )
     if idea.strip():
         lines.append(f"Direction for this part: {idea.strip()}")
@@ -1082,6 +1261,7 @@ def generate_full_script(
     duration_meta: Dict[str, Any], series_type: str, idea: str, trending_topic: str,
     satire_intensity: Optional[str], hook_required: bool,
     melodrama_archetype: Optional[str] = None,
+    dhamma_format: Optional[str] = None,
 ) -> Tuple[str, Dict[str, Any]]:
     """Runs the (possibly multi-batch) generation for a brand-new script and
     returns (model_used, data)."""
@@ -1090,18 +1270,22 @@ def generate_full_script(
 
     # --- first batch: title, logline, style bible, characters + its scenes ---
     sys0 = build_system_prompt(style, batches[0], series_type, satire_intensity, hook_required,
-                               mode="full", melodrama_archetype=melodrama_archetype)
+                               mode="full", melodrama_archetype=melodrama_archetype,
+                               dhamma_format=dhamma_format)
     instr0 = build_user_instruction(style, genre, duration_meta, series_type, idea, batches[0],
-                                    trending_topic, melodrama_archetype=melodrama_archetype)
+                                    trending_topic, melodrama_archetype=melodrama_archetype,
+                                    dhamma_format=dhamma_format)
     model_used, data = generate_with_fallback(status, api_key, model_order, FULL_SCRIPT_SCHEMA, sys0, instr0)
     used_models.append(model_used)
 
     # --- remaining batches: scenes only, continuing the same story ---
     for batch in batches[1:]:
         sys_b = build_system_prompt(style, batch, series_type, satire_intensity, hook_required,
-                                    mode="batch_continue", melodrama_archetype=melodrama_archetype)
+                                    mode="batch_continue", melodrama_archetype=melodrama_archetype,
+                                    dhamma_format=dhamma_format)
         instr_b = build_batch_continue_instruction(data, style, genre, duration_meta, batch,
-                                                   melodrama_archetype=melodrama_archetype)
+                                                   melodrama_archetype=melodrama_archetype,
+                                                   dhamma_format=dhamma_format)
         model_b, batch_data = generate_with_fallback(status, api_key, model_order, BATCH_SCENES_SCHEMA, sys_b, instr_b)
         used_models.append(model_b)
         data.setdefault("scenes", []).extend(batch_data.get("scenes", []))
@@ -1115,23 +1299,28 @@ def generate_continuation(
     style: str, genre: str, duration_meta: Dict[str, Any], series_type: str,
     idea: str, satire_intensity: Optional[str], hook_required: bool,
     melodrama_archetype: Optional[str] = None,
+    dhamma_format: Optional[str] = None,
 ) -> Tuple[str, Dict[str, Any]]:
     batches = plan_batches(duration_meta)
     used_models: List[str] = []
 
     sys0 = build_system_prompt(style, batches[0], series_type, satire_intensity, hook_required,
-                               mode="continuation", melodrama_archetype=melodrama_archetype)
+                               mode="continuation", melodrama_archetype=melodrama_archetype,
+                               dhamma_format=dhamma_format)
     instr0 = build_continuation_first_batch_instruction(previous_data, style, genre, duration_meta,
                                                         batches[0], idea,
-                                                        melodrama_archetype=melodrama_archetype)
+                                                        melodrama_archetype=melodrama_archetype,
+                                                        dhamma_format=dhamma_format)
     model_used, data = generate_with_fallback(status, api_key, model_order, FULL_SCRIPT_SCHEMA, sys0, instr0)
     used_models.append(model_used)
 
     for batch in batches[1:]:
         sys_b = build_system_prompt(style, batch, series_type, satire_intensity, hook_required,
-                                    mode="batch_continue", melodrama_archetype=melodrama_archetype)
+                                    mode="batch_continue", melodrama_archetype=melodrama_archetype,
+                                    dhamma_format=dhamma_format)
         instr_b = build_batch_continue_instruction(data, style, genre, duration_meta, batch,
-                                                   melodrama_archetype=melodrama_archetype)
+                                                   melodrama_archetype=melodrama_archetype,
+                                                   dhamma_format=dhamma_format)
         model_b, batch_data = generate_with_fallback(status, api_key, model_order, BATCH_SCENES_SCHEMA, sys_b, instr_b)
         used_models.append(model_b)
         data.setdefault("scenes", []).extend(batch_data.get("scenes", []))
@@ -1359,9 +1548,19 @@ series_type = series_type or SERIES_OPTIONS[0]
 
 is_satire = selected_genre in SATIRE_GENRES
 is_melodrama = selected_genre == MELODRAMA_GENRE
+is_dhamma = selected_style == DHAMMA_STYLE
 trending_topic = ""
 satire_intensity = None
 melodrama_archetype = None
+dhamma_format = None
+if is_dhamma:
+    st.markdown('<div class="field-label">🙏 တရားတော် ပုံစံ (Format)</div>', unsafe_allow_html=True)
+    dhamma_format = st.pills(
+        "Dhamma format", list(DHAMMA_FORMATS.keys()),
+        default=list(DHAMMA_FORMATS.keys())[0],
+        key="dhamma_format", label_visibility="collapsed")
+    dhamma_format = dhamma_format or list(DHAMMA_FORMATS.keys())[0]
+    st.caption("💡 ပုံစံတစ်ခုရွေးလိုက်ရင် AI က အေးချမ်းလေးနက်တဲ့ အသံ၊ ရိုသေတဲ့ ပုံရိပ်တွေနဲ့ တရားတော် video script ရေးပေးမယ်။")
 if is_melodrama:
     st.markdown('<div class="field-label">🎭 ဒရမ်မာ ပုံစံ (Archetype)</div>', unsafe_allow_html=True)
     melodrama_archetype = st.pills(
@@ -1410,6 +1609,7 @@ if generate_clicked:
                     duration_meta, series_type, custom_idea, trending_topic,
                     satire_intensity if is_satire else None, hook_required,
                     melodrama_archetype=melodrama_archetype,
+                    dhamma_format=dhamma_format,
                 )
                 character_clause = build_character_clause(data)
                 style_bible = data.get("style_bible", "")
@@ -1424,6 +1624,7 @@ if generate_clicked:
                     "character_clause": character_clause, "style_bible": style_bible,
                     "is_satire": is_satire, "satire_intensity": satire_intensity,
                     "melodrama_archetype": melodrama_archetype,
+                    "dhamma_format": dhamma_format,
                 }
                 st.session_state.parts = [new_part]
                 st.session_state.active_part = 0
@@ -1447,11 +1648,19 @@ if generate_clicked:
 # 12. RESULTS
 # =====================================================================
 
-def _act_chip(fraction: float, melodrama: bool = False) -> str:
+def _act_chip(fraction: float, melodrama: bool = False, dhamma: bool = False) -> str:
     """Scene card အတွက် act label + အရောင် chip HTML ထုတ်ပေးသည်။"""
-    name = act_for_position(fraction, melodrama).split(" - ")[0].strip()
+    name = act_for_position(fraction, melodrama, dhamma).split(" - ")[0].strip()
     color = "#F2B134"
-    if "HOOK" in name:
+    if "SERENE OPENING" in name:
+        color = "#F2B134"
+    elif "SETTING" in name:
+        color = "#60A5FA"
+    elif "TEACHING" in name:
+        color = "#A78BFA"
+    elif "INSIGHT" in name or "CLOSING" in name:
+        color = "#34D399"
+    elif "HOOK" in name:
         color = "#F2B134"
     elif "SETUP" in name:
         color = "#60A5FA"
@@ -1495,6 +1704,7 @@ else:
     data = part["data"]
     aspect_meta = ASPECT_RATIOS[part["aspect_label"]]
     is_melo_part = part.get("genre") == MELODRAMA_GENRE
+    is_dhamma_part = part.get("style") == DHAMMA_STYLE
     n_scenes = len(data.get("scenes", []))
 
     st.markdown(
@@ -1557,7 +1767,7 @@ else:
             st.markdown(
                 '<div class="scene-card"><div class="scene-top">'
                 f'<span class="scene-num">SCENE {sc_num}</span>'
-                f"{_act_chip(_frac, is_melo_part)}"
+                f"{_act_chip(_frac, is_melo_part, is_dhamma_part)}"
                 "</div>"
                 f'<div class="dialogue-box">🗣️ {dialogue}</div></div>',
                 unsafe_allow_html=True,
@@ -1605,6 +1815,8 @@ else:
                         part["style"], dummy_batch, part.get("series_type", SERIES_OPTIONS[0]),
                         part.get("satire_intensity") if part.get("is_satire") else None,
                         mode="single_scene",
+                        melodrama_archetype=part.get("melodrama_archetype"),
+                        dhamma_format=part.get("dhamma_format"),
                     )
                     user_instruction = build_single_scene_instruction(data, sc_num, part["style"], part["genre"])
 
@@ -1686,6 +1898,53 @@ else:
 
         st.markdown('<div class="panel">', unsafe_allow_html=True)
         st.markdown(
+            '<div class="panel-head"><div class="step-num">📣</div>'
+            '<div class="panel-title">တင်ရန် စာသား</div></div>'
+            '<div class="panel-sub">TikTok / Reels / Shorts တင်ဖို့ caption, hashtag နဲ့ thumbnail စာသားတွေ AI နဲ့ ထုတ်ပေးမယ်။</div>',
+            unsafe_allow_html=True,
+        )
+        _cta_default = CTA_OPTIONS[0] if is_dhamma_part else CTA_OPTIONS[1]
+        cta_choice = st.pills("CTA", CTA_OPTIONS, default=_cta_default,
+                              key=f"cta_{st.session_state.active_part}", label_visibility="collapsed")
+        cta_choice = cta_choice or _cta_default
+        if st.button("✨ Caption ထုတ်မည်", key=f"gen_caption_{st.session_state.active_part}", width="stretch"):
+            api_key = (api_key_input or "").strip()
+            if not api_key:
+                st.error("⚠️ API Key ထည့်ပါဦး။")
+            else:
+                first_choice = custom_model.strip() if custom_model.strip() else selected_model
+                model_order = [first_choice] + [m for m in MODEL_CHOICES if m != first_choice]
+                with st.status("Caption ရေးနေသည်…", expanded=True) as status:
+                    try:
+                        _cm, cap_data = generate_with_fallback(
+                            status, api_key, model_order, CAPTION_SCHEMA,
+                            CAPTION_SYSTEM_PROMPT,
+                            build_caption_instruction(data, part["style"], part["genre"], cta_choice),
+                        )
+                        part["caption_data"] = cap_data
+                        persist_project()
+                        st.toast("✅ Caption ရပါပြီ!")
+                        st.rerun()
+                    except errors.APIError as e:
+                        st.error(friendly_api_error(e))
+                        show_attempt_log(e)
+                    except Exception as e:
+                        st.error(f"မအောင်မြင်ပါ: {e}")
+
+        _cap = part.get("caption_data")
+        if _cap:
+            st.markdown('<div class="prompt-panel-label">📝 Caption</div>', unsafe_allow_html=True)
+            st.code(_cap.get("caption", ""), language="text")
+            _tags = " ".join(f"#{str(t).strip().lstrip('#')}" for t in _cap.get("hashtags", []) if str(t).strip())
+            st.markdown('<div class="prompt-panel-label">#️⃣ Hashtags</div>', unsafe_allow_html=True)
+            st.code(_tags, language="text")
+            st.markdown('<div class="prompt-panel-label">🖼️ Thumbnail စာသား</div>', unsafe_allow_html=True)
+            for _ti, _th in enumerate(_cap.get("thumbnail_texts", []), 1):
+                st.markdown(f"**{_ti}.** {html.escape(str(_th))}")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown('<div class="panel">', unsafe_allow_html=True)
+        st.markdown(
             '<div class="panel-head"><div class="step-num">➕</div>'
             '<div class="panel-title">နောက် Part ဆက်ရေးရန်</div></div>'
             '<div class="panel-sub">ဇာတ်ကောင်၊ style နဲ့ ဇာတ်လမ်းဆက်စပ်မှု အကုန် မှတ်ထားပြီးသား အတိုင်း နောက် အပိုင်း ထပ်ရေးပေးပါမယ်။</div>',
@@ -1711,6 +1970,7 @@ else:
                             duration_meta, part.get("series_type", SERIES_OPTIONS[0]), next_idea,
                             part.get("satire_intensity") if part.get("is_satire") else None, hook_required,
                             melodrama_archetype=part.get("melodrama_archetype"),
+                            dhamma_format=part.get("dhamma_format"),
                         )
                         character_clause = build_character_clause(new_data)
                         style_bible = new_data.get("style_bible", "")
