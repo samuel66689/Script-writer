@@ -1057,22 +1057,58 @@ def build_batch_continue_instruction(
     return "\n".join(lines)
 
 
+def build_story_recap(all_previous_data: List[Dict[str, Any]]) -> str:
+    """Compact 'story so far' recap across every earlier part.
+
+    Each new part used to receive only the immediately-previous part's logline,
+    so long series drifted and repeated beats. This gives the model the whole
+    arc (one line per part) plus the last two scenes of the latest part for
+    immediate continuity.
+    """
+    chunks: List[str] = []
+    numbered = [(i, d) for i, d in enumerate(all_previous_data or [], 1) if isinstance(d, dict)]
+    for i, d in numbered:
+        title = str(d.get("title", "")).strip()
+        logline = str(d.get("logline", "")).strip()
+        if title or logline:
+            chunks.append(f"Part {i} '{title}': {logline}".strip())
+    # immediate continuity: last two scenes of the latest part that has any
+    for i, d in reversed(numbered):
+        last_scenes = (d.get("scenes", []) or [])[-2:]
+        if last_scenes:
+            for s in last_scenes:
+                dlg = str(s.get("dialogue_myanmar", "")).strip()
+                if dlg:
+                    chunks.append(f"End of Part {i} (scene {s.get('scene_number')}): {dlg}")
+            break
+    return "\n".join(chunks)
+
+
 def build_continuation_first_batch_instruction(
     previous_data: Dict[str, Any], style: str, genre: str, duration_meta: Dict[str, Any],
     batch: Dict[str, int], idea: str, melodrama_archetype: Optional[str] = None,
-    dhamma_format: Optional[str] = None,
+    dhamma_format: Optional[str] = None, story_recap: str = "",
+    part_number: Optional[int] = None,
 ) -> str:
     char_names = ", ".join(c.get("character_name", "") for c in previous_data.get("character_sheet", []))
+    part_label = f"Part {part_number}" if part_number else "the NEXT part"
     lines = [
         f"Style: {style}",
         f"Genre: {genre}",
-        f"This is the NEXT part of an ongoing series titled '{previous_data.get('title', '')}'.",
-        f"Previous logline: {previous_data.get('logline', '')}",
+        f"This is {part_label} of an ongoing series titled '{previous_data.get('title', '')}'.",
         f"Existing characters to reuse: {char_names or 'none yet'}",
         f"Create exactly {batch['count']} new scenes for this part, numbered sequentially "
         f"starting at {batch['start']}.",
         dialogue_pacing_line(duration_meta, dhamma_format),
     ]
+    if story_recap.strip():
+        lines.append(
+            "STORY SO FAR - everything that already happened in earlier parts. "
+            "Do NOT repeat these events, jokes, dialogue beats, or twists; "
+            "always move the story forward into new territory:\n" + story_recap.strip()
+        )
+    else:
+        lines.append(f"Previous logline: {previous_data.get('logline', '')}")
     if melodrama_archetype:
         lines.append(
             f"Keep following the melodrama archetype: {melodrama_archetype}. "
@@ -1300,9 +1336,13 @@ def generate_continuation(
     idea: str, satire_intensity: Optional[str], hook_required: bool,
     melodrama_archetype: Optional[str] = None,
     dhamma_format: Optional[str] = None,
+    all_previous_data: Optional[List[Dict[str, Any]]] = None,
 ) -> Tuple[str, Dict[str, Any]]:
     batches = plan_batches(duration_meta)
     used_models: List[str] = []
+
+    story_recap = build_story_recap(all_previous_data) if all_previous_data else ""
+    part_number = len(all_previous_data) + 1 if all_previous_data else None
 
     sys0 = build_system_prompt(style, batches[0], series_type, satire_intensity, hook_required,
                                mode="continuation", melodrama_archetype=melodrama_archetype,
@@ -1310,7 +1350,9 @@ def generate_continuation(
     instr0 = build_continuation_first_batch_instruction(previous_data, style, genre, duration_meta,
                                                         batches[0], idea,
                                                         melodrama_archetype=melodrama_archetype,
-                                                        dhamma_format=dhamma_format)
+                                                        dhamma_format=dhamma_format,
+                                                        story_recap=story_recap,
+                                                        part_number=part_number)
     model_used, data = generate_with_fallback(status, api_key, model_order, FULL_SCRIPT_SCHEMA, sys0, instr0)
     used_models.append(model_used)
 
@@ -1977,6 +2019,10 @@ else:
                             part.get("satire_intensity") if part.get("is_satire") else None, hook_required,
                             melodrama_archetype=part.get("melodrama_archetype"),
                             dhamma_format=part.get("dhamma_format"),
+                            all_previous_data=[
+                                p["data"] for p in st.session_state.parts[:st.session_state.active_part + 1]
+                                if isinstance(p.get("data"), dict)
+                            ],
                         )
                         character_clause = build_character_clause(new_data)
                         style_bible = new_data.get("style_bible", "")
