@@ -1524,11 +1524,25 @@ selected_style = st.pills("Style", list(CATEGORIES.keys()), default=list(CATEGOR
                            label_visibility="collapsed")
 selected_style = selected_style or list(CATEGORIES.keys())[0]
 
-st.markdown('<div class="field-label"><span class="n">၂</span>ဇာတ်လမ်း အမျိုးအစား (Genre)</div>', unsafe_allow_html=True)
-genre_options = CATEGORIES[selected_style]
-selected_genre = st.pills("Genre", genre_options, default=genre_options[0],
-                           key=f"genre_{selected_style}", label_visibility="collapsed")
-selected_genre = selected_genre or genre_options[0]
+is_dhamma_style = selected_style == DHAMMA_STYLE
+if is_dhamma_style:
+    # Dhamma mode: the format IS the genre - hide the generic genre pills
+    # so users never combine conflicting options (e.g. ၅၅၀ ဇာတ်တော် + တရားထိုင်လမ်းညွှန်).
+    st.markdown('<div class="field-label"><span class="n">၂</span>🙏 တရားတော် ပုံစံ (Format)</div>', unsafe_allow_html=True)
+    dhamma_format = st.pills(
+        "Dhamma format", list(DHAMMA_FORMATS.keys()),
+        default=list(DHAMMA_FORMATS.keys())[0],
+        key="dhamma_format", label_visibility="collapsed")
+    dhamma_format = dhamma_format or list(DHAMMA_FORMATS.keys())[0]
+    st.caption("💡 ပုံစံတစ်ခုရွေးလိုက်ရင် AI က အေးချမ်းလေးနက်တဲ့ အသံ၊ ရိုသေတဲ့ ပုံရိပ်တွေနဲ့ တရားတော် video script ရေးပေးမယ်။")
+    selected_genre = dhamma_format
+else:
+    st.markdown('<div class="field-label"><span class="n">၂</span>ဇာတ်လမ်း အမျိုးအစား (Genre)</div>', unsafe_allow_html=True)
+    genre_options = CATEGORIES[selected_style]
+    selected_genre = st.pills("Genre", genre_options, default=genre_options[0],
+                               key=f"genre_{selected_style}", label_visibility="collapsed")
+    selected_genre = selected_genre or genre_options[0]
+    dhamma_format = None
 
 col_a, col_b = st.columns(2)
 with col_a:
@@ -1552,15 +1566,7 @@ is_dhamma = selected_style == DHAMMA_STYLE
 trending_topic = ""
 satire_intensity = None
 melodrama_archetype = None
-dhamma_format = None
-if is_dhamma:
-    st.markdown('<div class="field-label">🙏 တရားတော် ပုံစံ (Format)</div>', unsafe_allow_html=True)
-    dhamma_format = st.pills(
-        "Dhamma format", list(DHAMMA_FORMATS.keys()),
-        default=list(DHAMMA_FORMATS.keys())[0],
-        key="dhamma_format", label_visibility="collapsed")
-    dhamma_format = dhamma_format or list(DHAMMA_FORMATS.keys())[0]
-    st.caption("💡 ပုံစံတစ်ခုရွေးလိုက်ရင် AI က အေးချမ်းလေးနက်တဲ့ အသံ၊ ရိုသေတဲ့ ပုံရိပ်တွေနဲ့ တရားတော် video script ရေးပေးမယ်။")
+# dhamma_format was already chosen above (step 2) when is_dhamma - nothing more to ask here.
 if is_melodrama:
     st.markdown('<div class="field-label">🎭 ဒရမ်မာ ပုံစံ (Archetype)</div>', unsafe_allow_html=True)
     melodrama_archetype = st.pills(
